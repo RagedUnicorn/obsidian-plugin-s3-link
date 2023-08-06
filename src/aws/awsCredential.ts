@@ -4,7 +4,7 @@
  * Holding a single AWS credential
  *
  */
-export class AwsCredential {
+export default class AwsCredential {
     profileName: string;
     accessKeyId: string;
     secretAccessKey: string;

@@ -1,5 +1,5 @@
 import S3LinkPlugin from "./main";
-import { Config } from "./config";
+import Config from "./config";
 import { setIcon } from "obsidian";
 import { PluginState } from "./pluginState";
 

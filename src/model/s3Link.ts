@@ -3,7 +3,7 @@
  *
  * Represents all relevant data for an S3 object
  */
-export class S3Link {
+export default class S3Link {
     objectKey: string;
     lastUpdate: number;
     versionId: string;

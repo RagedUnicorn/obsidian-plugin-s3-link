@@ -1,6 +1,6 @@
 import { Plugin } from "obsidian";
-import { Config } from "./config";
-import { Cache } from "./cache";
+import Config from "./config";
+import Cache from "./cache";
 import { MarkdownPostProcessorListener } from "./markdownPostProcessorListener";
 import { PluginSettingsTab } from "./settings/settingsTab";
 import {

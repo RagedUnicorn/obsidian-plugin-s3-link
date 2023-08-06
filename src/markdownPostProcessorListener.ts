@@ -1,15 +1,15 @@
 import { TFile } from "obsidian";
-import { Cache } from "./cache";
-import { Config } from "./config";
+import Cache from "./cache";
+import Config from "./config";
 import { getVaultResourcePath } from "./obsidianHelper";
 import { S3NetworkExecutor } from "./s3NetworkExecutor";
 import { PluginSettings } from "./settings/settings";
-import { S3ImageResolver } from "./resolver/s3ImageResolver";
-import { S3VideoResolver } from "./resolver/s3VideoResolver";
-import { S3SpanResolver } from "./resolver/s3SpanResolver";
-import { S3AnchorResolver } from "./resolver/s3AnchorResolver";
+import S3ImageResolver from "./resolver/s3ImageResolver";
+import S3VideoResolver from "./resolver/s3VideoResolver";
+import S3SpanResolver from "./resolver/s3SpanResolver";
+import S3AnchorResolver from "./resolver/s3AnchorResolver";
 import S3LinkPlugin from "./main";
-import { S3Link } from "./model/s3Link";
+import S3Link from "./model/s3Link";
 import * as path from "path";
 
 export class MarkdownPostProcessorListener {

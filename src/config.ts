@@ -1,4 +1,4 @@
-export abstract class Config {
+export default abstract class Config {
     static readonly PLUGIN_NAME = "obsidian-plugin-s3-link";
     static readonly PLUGIN_DISPLAY_NAME = "S3 Link Plugin";
     static readonly CACHE_FOLDER = "s3_cache";

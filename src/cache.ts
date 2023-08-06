@@ -1,11 +1,11 @@
 import { FileSystemAdapter, TFile } from "obsidian";
-import { S3Link } from "./model/s3Link";
-import { Config } from "./config";
-import { S3SignedLink } from "./model/s3SignedLink";
+import Config from "./config";
+import S3Link from "./model/s3Link";
+import S3SignedLink from "./model/s3SignedLink";
 import * as path from "path";
 import * as fs from "fs";
 
-export class Cache {
+export default class Cache {
     private readonly moduleName = "S3Cache";
     private vault = window.app.vault;
 

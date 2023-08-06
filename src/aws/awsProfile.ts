@@ -4,7 +4,7 @@
  * Holding a single AWS profile
  *
  */
-export class AwsProfile {
+export default class AwsProfile {
     name: string;
 
     constructor(name: string) {

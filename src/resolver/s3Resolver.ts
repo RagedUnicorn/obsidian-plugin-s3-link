@@ -1,4 +1,4 @@
-export abstract class S3Resolver {
+export default abstract class S3Resolver {
     /**
      * objectKeys of items that are supposed to be downloaded from S3
      */

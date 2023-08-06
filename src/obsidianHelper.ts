@@ -1,6 +1,6 @@
 import { TFile } from "obsidian";
-import { Config } from "./config";
-import { S3Link } from "./model/s3Link";
+import Config from "./config";
+import S3Link from "./model/s3Link";
 import * as path from "path";
 
 export function getVaultResourcePath(arg: S3Link): string;

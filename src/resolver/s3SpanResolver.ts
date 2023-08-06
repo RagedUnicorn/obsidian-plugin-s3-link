@@ -1,7 +1,7 @@
-import { Config } from "../config";
-import { S3Resolver } from "./s3Resolver";
+import Config from "../config";
+import S3Resolver from "./s3Resolver";
 
-export class S3SpanResolver extends S3Resolver {
+export default class S3SpanResolver extends S3Resolver {
     private readonly moduleName = "S3SpanResolver";
     targetElement = "span";
 

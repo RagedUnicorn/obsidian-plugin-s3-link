@@ -6,9 +6,9 @@ import {
     ListObjectVersionsCommandOutput,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { AwsCredentialProvider } from "./aws/awsCredentialProvider";
-import { AwsCredential } from "./aws/awsCredential";
-import { Config } from "./config";
+import AwsCredentialProvider from "./aws/awsCredentialProvider";
+import AwsCredential from "./aws/awsCredential";
+import Config from "./config";
 import S3LinkPlugin from "./main";
 import { PluginState } from "./pluginState";
 import { sendNotification } from "./notification";

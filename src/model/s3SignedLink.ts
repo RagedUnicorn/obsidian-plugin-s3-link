@@ -3,7 +3,7 @@
  *
  * Represents all relevant data for a signed link to an S3 object
  */
-export class S3SignedLink {
+export default class S3SignedLink {
     objectKey: string;
     lastUpdate: number;
     signedUrl: string;

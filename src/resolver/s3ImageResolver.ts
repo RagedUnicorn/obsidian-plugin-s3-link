@@ -1,7 +1,7 @@
-import { Config } from "../config";
-import { S3Resolver } from "./s3Resolver";
+import Config from "../config";
+import S3Resolver from "./s3Resolver";
 
-export class S3ImageResolver extends S3Resolver {
+export default class S3ImageResolver extends S3Resolver {
     private readonly moduleName = "S3ImageResolver";
     targetElement = "img";
 

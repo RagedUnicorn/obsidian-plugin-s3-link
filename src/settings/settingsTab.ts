@@ -1,9 +1,9 @@
 import S3LinkPlugin from "../main";
 import { App, PluginSettingTab, Setting } from "obsidian";
 import { DEFAULT_SETTINGS, REGIONS } from "./settings";
-import { AwsProfile } from "../aws/awsProfile";
-import { Config } from "../config";
-import { AwsCredentialProvider } from "../aws/awsCredentialProvider";
+import AwsProfile from "../aws/awsProfile";
+import Config from "../config";
+import AwsCredentialProvider from "../aws/awsCredentialProvider";
 
 export class PluginSettingsTab extends PluginSettingTab {
     plugin: S3LinkPlugin;

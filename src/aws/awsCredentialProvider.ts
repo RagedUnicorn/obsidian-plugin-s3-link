@@ -2,9 +2,9 @@
 
 import * as fs from "fs";
 import * as os from "os";
-import { AwsProfile } from "./awsProfile";
-import { Config } from "../config";
-import { AwsCredential } from "./awsCredential";
+import AwsProfile from "./awsProfile";
+import AwsCredential from "./awsCredential";
+import Config from "../config";
 
 const path = require("path");
 
@@ -14,7 +14,7 @@ const path = require("path");
  * A helper for retrieving profiles and credentials from the AWS credentials file in the users home directory
  *
  */
-export class AwsCredentialProvider {
+export default class AwsCredentialProvider {
     private readonly moduleName = "AwsCredentialProvider";
     profiles: AwsProfile[] = [];
 
