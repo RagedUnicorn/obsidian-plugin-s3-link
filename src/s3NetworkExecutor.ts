@@ -127,7 +127,8 @@ export class S3NetworkExecutor {
             Prefix: objectKey,
         });
         const response = await this.s3Client.send(command);
-        console.log("Retrieved object metadata:", response);
+
+        console.debug(`${this.moduleName}: getObjectMetadata response`, response);
 
         return response;
     }
