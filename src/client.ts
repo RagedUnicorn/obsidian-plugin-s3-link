@@ -11,11 +11,11 @@ import AwsCredential from "./aws/awsCredential";
 import Config from "./config";
 import S3LinkPlugin from "./main";
 import { PluginState } from "./pluginState";
-import { sendNotification } from "./notification";
+import { sendNotification } from "./ui/notification";
 import { isPluginReadyState } from "./settings/settings";
 
-export class S3NetworkExecutor {
-    private readonly moduleName = "S3NetworkExecutor";
+export class Client {
+    private readonly moduleName = "Client";
     private s3Client: S3Client | null;
     private awsCredentialProvider = new AwsCredentialProvider();
     private settings: PluginSettings;
@@ -128,7 +128,10 @@ export class S3NetworkExecutor {
         });
         const response = await this.s3Client.send(command);
 
-        console.debug(`${this.moduleName}: getObjectMetadata response`, response);
+        console.debug(
+            `${this.moduleName}: getObjectMetadata response`,
+            response
+        );
 
         return response;
     }

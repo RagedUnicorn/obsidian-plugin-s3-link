@@ -1,16 +1,16 @@
 import Config from "../config";
-import S3Resolver from "./s3Resolver";
+import Resolver from "./resolver";
 
-export default class S3VideoResolver extends S3Resolver {
-    private readonly moduleName = "S3VideoResolver";
-    targetElement = "video";
+export default class AnchorResolver extends Resolver {
+    private readonly moduleName = "AnchorResolver";
+    targetElement = "a";
 
     constructor() {
         super();
     }
 
     /**
-     * Resolve all video tags that contain a link to an S3 object in one of the plugins expected format.
+     * Resolve all anchor tags that contain a link to an S3 object in the plugins expected format.
      *
      * @param element An HTMLElement containing the rendered markdown content
      *
@@ -24,15 +24,15 @@ export default class S3VideoResolver extends S3Resolver {
             `${this.moduleName}::resolveHtmlElement - Processing rendered html content`
         );
 
-        const videoElements = element.querySelectorAll(
+        const anchorElements = element.querySelectorAll(
             this.targetElement
-        ) as NodeListOf<HTMLVideoElement>;
+        ) as NodeListOf<HTMLAnchorElement>;
         this.clearObjectKeys();
         this.clearSignObjectKeys();
 
-        if (videoElements.length == 0) {
+        if (anchorElements.length == 0) {
             console.debug(
-                `${this.moduleName} - Rendered markdown content does not contain any video tags, aborting...`
+                `${this.moduleName} - Rendered markdown content does not contain any anchor tags, aborting...`
             );
 
             return {
@@ -41,27 +41,27 @@ export default class S3VideoResolver extends S3Resolver {
             };
         }
 
-        videoElements.forEach((videoElement) => {
-            const parts = videoElement.src.split(Config.S3_LINK_SPLITTER);
+        anchorElements.forEach((anchorElement) => {
+            const parts = anchorElement.href.split(Config.S3_LINK_SPLITTER);
 
             if (parts[this.s3LinkLeftPart] == Config.S3_LINK_PREFIX) {
                 console.debug(
-                    `${this.moduleName} - S3 VideoResolver found link:`,
-                    videoElement.src
+                    `${this.moduleName} - S3 AnchorResolver found link:`,
+                    anchorElement.href
                 );
 
-                this.addObjectKey(parts[this.s3LinkRightPart], videoElement);
+                this.addObjectKey(parts[this.s3LinkRightPart], anchorElement);
             } else if (
                 parts[this.s3LinkLeftPart] == Config.S3_SIGNED_LINK_PREFIX
             ) {
                 console.debug(
-                    `${this.moduleName} - S3 VideoResolver found sign link:`,
-                    videoElement.src
+                    `${this.moduleName} - S3 AnchorResolver found sign link:`,
+                    anchorElement.href
                 );
 
                 this.addSignObjectKey(
                     parts[this.s3LinkRightPart],
-                    videoElement
+                    anchorElement
                 );
             }
         });

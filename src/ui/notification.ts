@@ -1,5 +1,5 @@
 import { Notice } from "obsidian";
-import Config from "./config";
+import Config from "../config";
 
 /**
  * Send a notification to the user

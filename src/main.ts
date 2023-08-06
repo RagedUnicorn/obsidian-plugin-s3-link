@@ -10,8 +10,8 @@ import {
 } from "./settings/settings";
 import { addPluginCommands } from "./commands";
 import { PluginState } from "./pluginState";
-import { StatusBar } from "./statusBar";
-import { sendNotification } from "./notification";
+import { StatusBar } from "./ui/statusBar";
+import { sendNotification } from "./ui/notification";
 
 export default class S3LinkPlugin extends Plugin {
     private readonly moduleName = "Main";

@@ -2,24 +2,24 @@ import { TFile } from "obsidian";
 import Cache from "./cache";
 import Config from "./config";
 import { getVaultResourcePath } from "./obsidianHelper";
-import { S3NetworkExecutor } from "./s3NetworkExecutor";
+import { Client } from "./client";
 import { PluginSettings } from "./settings/settings";
-import S3ImageResolver from "./resolver/s3ImageResolver";
-import S3VideoResolver from "./resolver/s3VideoResolver";
-import S3SpanResolver from "./resolver/s3SpanResolver";
-import S3AnchorResolver from "./resolver/s3AnchorResolver";
+import ImageResolver from "./resolver/imageResolver";
+import S3VideoResolver from "./resolver/videoResolver";
+import SpanResolver from "./resolver/spanResolver";
+import AnchorResolver from "./resolver/anchorResolver";
 import S3LinkPlugin from "./main";
 import S3Link from "./model/s3Link";
 import * as path from "path";
 
 export class MarkdownPostProcessorListener {
     private readonly moduleName = "MarkdownPostProcessorListener";
-    private s3NetworkExecutor: S3NetworkExecutor;
+    private s3NetworkExecutor: Client;
     private s3Cache: Cache;
-    private imageResolver: S3ImageResolver;
+    private imageResolver: ImageResolver;
     private videoResolver: S3VideoResolver;
-    private spanResolver: S3SpanResolver;
-    private anchorResolver: S3AnchorResolver;
+    private spanResolver: SpanResolver;
+    private anchorResolver: AnchorResolver;
     private pluginSettings: PluginSettings;
 
     constructor(
@@ -28,11 +28,11 @@ export class MarkdownPostProcessorListener {
         settings: PluginSettings
     ) {
         this.s3Cache = s3Cache;
-        this.s3NetworkExecutor = new S3NetworkExecutor(settings, plugin);
-        this.imageResolver = new S3ImageResolver();
+        this.s3NetworkExecutor = new Client(settings, plugin);
+        this.imageResolver = new ImageResolver();
         this.videoResolver = new S3VideoResolver();
-        this.spanResolver = new S3SpanResolver();
-        this.anchorResolver = new S3AnchorResolver();
+        this.spanResolver = new SpanResolver();
+        this.anchorResolver = new AnchorResolver();
         this.pluginSettings = settings;
         this.s3NetworkExecutor.initializeS3Client(this.pluginSettings);
     }
