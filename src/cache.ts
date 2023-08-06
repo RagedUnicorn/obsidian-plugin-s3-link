@@ -1,9 +1,9 @@
 import { FileSystemAdapter, TFile } from "obsidian";
 import { S3Link } from "./model/s3Link";
 import { Config } from "./config";
+import { S3SignedLink } from "./model/s3SignedLink";
 import * as path from "path";
 import * as fs from "fs";
-import { S3SignedLink } from "./model/s3SignedLink";
 
 export class Cache {
     private readonly moduleName = "S3Cache";
@@ -76,7 +76,14 @@ export class Cache {
         return app.vault.createBinary(objectPath, objectData);
     }
 
-    public initNewItemToCache(objectKey: string, versionId: string) {
+    /**
+     * Writes a new entry for the given objectKey to localStorage.
+     * If one already exists, it will be overwritten.
+     *
+     * @param objectKey
+     * @param versionId
+     */
+    public writeItemToCache(objectKey: string, versionId: string) {
         this.writeLocalStorage(objectKey, versionId);
     }
 
@@ -177,7 +184,7 @@ export class Cache {
                 parsedData
             );
 
-            if (this.isCacheItemExpired(parsedData.lastUpdate)) {
+            if (this.isS3SignedLinkCacheItemExpired(parsedData.lastUpdate)) {
                 console.info(
                     `${this.moduleName}: Cache item for ${objectKey} expired, removing from localStorage}`
                 );
@@ -202,21 +209,31 @@ export class Cache {
     }
 
     /**
-     * Checks if the cache item is expired.
+     * Checks if the cache item of a specific s3SignedLink is expired
      *
      * @param lastUpdate The lastUpdate timestamp of the cached item
      *
      * @returns true if the cache item is expired, false otherwise
      */
-    private isCacheItemExpired(lastUpdate: number): boolean {
-        const currentTime = Date.now();
-        const timeDifference = currentTime - lastUpdate;
+    private isS3SignedLinkCacheItemExpired(lastUpdate: number): boolean {
+        return (
+            (Date.now() - lastUpdate) / 1000 >
+            Config.S3_SIGNED_LINK_EXPIRATION_TIME_SECONDS
+        );
+    }
 
-        if (timeDifference / 1000 > Config.S3_LINK_EXPIRATION_TIME_SECONDS) {
-            return true;
-        }
-
-        return false;
+    /**
+     * Checks if the cache item of a specific s3Link is expired
+     * 
+     * @param lastUpdate The lastUpdate timestamp of the cached item
+     *
+     * @returns true if the cache item is expired, false otherwise
+     */
+    public isS3LinkCacheItemExpired(lastUpdate: number): boolean {
+        return (
+            (Date.now() - lastUpdate) / 1000 >
+            Config.S3_LINK_EXPIRATION_TIME_SECONDS
+        );
     }
 
     /**

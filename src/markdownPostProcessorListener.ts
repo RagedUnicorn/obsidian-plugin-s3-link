@@ -8,8 +8,9 @@ import { S3ImageResolver } from "./resolver/s3ImageResolver";
 import { S3VideoResolver } from "./resolver/s3VideoResolver";
 import { S3SpanResolver } from "./resolver/s3SpanResolver";
 import { S3AnchorResolver } from "./resolver/s3AnchorResolver";
-import * as path from "path";
 import S3LinkPlugin from "./main";
+import { S3Link } from "./model/s3Link";
+import * as path from "path";
 
 export class MarkdownPostProcessorListener {
     private readonly moduleName = "MarkdownPostProcessorListener";
@@ -104,14 +105,71 @@ export class MarkdownPostProcessorListener {
             const cachedS3Link = this.s3Cache.findItemInCache(objectKey);
 
             if (cachedS3Link != null) {
-                const resourcePath = getVaultResourcePath(cachedS3Link);
+                if (
+                    this.s3Cache.isS3LinkCacheItemExpired(
+                        cachedS3Link.lastUpdate
+                    )
+                ) {
+                    console.debug(
+                        `${this.moduleName} - Cache for ${objectKey} expired`
+                    );
 
-                this.updateLinkReferences(
-                    htmlElements,
-                    resourcePath,
-                    cachedS3Link.objectKey,
-                    cachedS3Link.versionId
-                );
+                    const versionId = await this.getNewestVersionId(
+                        objectKey,
+                        cachedS3Link
+                    );
+
+                    if (versionId == null) {
+                        console.error(
+                            `${this.moduleName} - Failed to retrieve versionId for objectKey ${objectKey}`
+                        );
+
+                        return;
+                    }
+
+                    // update cache
+                    this.s3Cache.writeItemToCache(objectKey, versionId);
+
+                    if (versionId != cachedS3Link.versionId) {
+                        console.log(
+                            `${this.moduleName} - New versionId ${versionId} for objectKey ${objectKey}`
+                        );
+
+                        const loadedFile = await this.loadS3Item(
+                            objectKey,
+                            versionId
+                        );
+
+                        this.updateLinkReferences(
+                            htmlElements,
+                            loadedFile,
+                            objectKey,
+                            versionId
+                        );
+
+                        return;
+                    }
+
+                    this.updateLinkReferences(
+                        htmlElements,
+                        cachedS3Link,
+                        objectKey,
+                        versionId
+                    );
+                } else {
+                    console.debug(`${this.moduleName} - Cache not expired`);
+                    // update last checked timestamp
+                    this.s3Cache.writeItemToCache(
+                        objectKey,
+                        cachedS3Link.versionId
+                    );
+                    this.updateLinkReferences(
+                        htmlElements,
+                        cachedS3Link,
+                        objectKey,
+                        cachedS3Link.versionId
+                    );
+                }
             } else {
                 try {
                     const versionId = await this.initNewS3Item(objectKey);
@@ -120,11 +178,9 @@ export class MarkdownPostProcessorListener {
                         versionId
                     );
 
-                    const resourcePath = getVaultResourcePath(loadedFile);
-
                     this.updateLinkReferences(
                         htmlElements,
-                        resourcePath,
+                        loadedFile,
                         objectKey,
                         versionId
                     );
@@ -184,13 +240,15 @@ export class MarkdownPostProcessorListener {
      */
     private updateLinkReferences(
         htmlElements: HTMLElement[],
-        resourcePath: string,
+        resource: S3Link | TFile,
         objectKey: string,
         versionId: string
     ) {
         console.debug(
             `${this.moduleName}::updateLinkReferences - Updating link references`
         );
+
+        let resourcePath = getVaultResourcePath(resource);
 
         htmlElements.forEach((htmlElement) => {
             if (htmlElement instanceof HTMLImageElement) {
@@ -244,7 +302,7 @@ export class MarkdownPostProcessorListener {
         );
 
         if (versionId) {
-            this.s3Cache.initNewItemToCache(objectKey, versionId);
+            this.s3Cache.writeItemToCache(objectKey, versionId);
 
             return versionId;
         }
@@ -288,5 +346,33 @@ export class MarkdownPostProcessorListener {
         this.s3Cache.writeSignedUrlToLocalStorage(objectKey, signedUrl);
 
         return signedUrl;
+    }
+
+    /**
+     * Retrieves the newest versionId for the given objectKey from S3
+     * If the versionId is the same as the one in the cache, the versionId is returned
+     *
+     * @param objectKey
+     * @param s3Link
+     *
+     * @returns
+     */
+    private async getNewestVersionId(
+        objectKey: string,
+        s3Link: S3Link
+    ): Promise<string | null> {
+        const versionId = await this.s3NetworkExecutor.getLatestObjectVersion(
+            objectKey
+        );
+
+        if (versionId && versionId == s3Link.versionId) {
+            console.debug(
+                `${this.moduleName} - Item ${objectKey} is still the latest version ${versionId}`
+            );
+
+            return s3Link.versionId;
+        } else {
+            return versionId ?? null;
+        }
     }
 }

@@ -175,7 +175,7 @@ export class S3NetworkExecutor {
 
             // Generate the signed URL
             const signedUrl = await getSignedUrl(this.s3Client, command, {
-                expiresIn: Config.S3_LINK_EXPIRATION_TIME_SECONDS,
+                expiresIn: Config.S3_SIGNED_LINK_EXPIRATION_TIME_SECONDS,
             });
 
             return signedUrl;
