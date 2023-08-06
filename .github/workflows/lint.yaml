@@ -1,0 +1,10 @@
+name: "Lint Project"
+on: [push]
+
+jobs:
+  lint-eslint:
+    runs-on: ubuntu-latest
+    name: EsLint linting
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
