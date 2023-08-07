@@ -10,6 +10,7 @@ import SpanResolver from "./resolver/spanResolver";
 import AnchorResolver from "./resolver/anchorResolver";
 import S3LinkPlugin from "./main";
 import S3Link from "./model/s3Link";
+import { sendNotification } from "./ui/notification";
 import * as path from "path";
 
 export class MarkdownPostProcessorListener {
@@ -248,7 +249,19 @@ export class MarkdownPostProcessorListener {
             `${this.moduleName}::updateLinkReferences - Updating link references`
         );
 
-        let resourcePath = getVaultResourcePath(resource);
+        let resourcePath = "";
+
+        try {
+            resourcePath = getVaultResourcePath(resource);
+        } catch (error) {
+            sendNotification(
+                "Failed to retrieve cached item. Item will be reloaded next time you open the file or reload Obsidian."
+            );
+
+            this.s3Cache.removeItemFromCache(objectKey);
+
+            return; // abort updating link references
+        }
 
         htmlElements.forEach((htmlElement) => {
             if (htmlElement instanceof HTMLImageElement) {

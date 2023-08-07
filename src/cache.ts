@@ -6,7 +6,7 @@ import * as path from "path";
 import * as fs from "fs";
 
 export default class Cache {
-    private readonly moduleName = "S3Cache";
+    private readonly moduleName = "Cache";
     private vault = window.app.vault;
 
     constructor() {
@@ -224,7 +224,7 @@ export default class Cache {
 
     /**
      * Checks if the cache item of a specific s3Link is expired
-     * 
+     *
      * @param lastUpdate The lastUpdate timestamp of the cached item
      *
      * @returns true if the cache item is expired, false otherwise
@@ -272,7 +272,7 @@ export default class Cache {
 
         if (!fs.existsSync(cachePath)) {
             console.error(
-                `${this.moduleName}: Cache folder does not exist, aborting...}`
+                `${this.moduleName}: Cache folder does not exist, aborting...`
             );
             return;
         }
@@ -304,6 +304,75 @@ export default class Cache {
 
         localStorageItems.forEach((key) => {
             if (key.startsWith(Config.PLUGIN_NAME)) {
+                localStorage.removeItem(key);
+
+                console.debug(
+                    `${this.moduleName}: Removed item with key: ${key}`
+                );
+            }
+        });
+    }
+
+    /**
+     * Removing a specific objectKey from both localStorage and the cache folder.
+     * It is important to remove the file from the cache folder first, because the localStorage contains the
+     * necessary information to find the file in the cache folder.
+     *
+     * @param objectKey
+     */
+    public removeItemFromCache(objectKey: string) {
+        this.removeItemFromCacheFolder(objectKey);
+        this.removeItemFromLocalStorage(objectKey);
+    }
+
+    /**
+     * Removes a specific objectKey from the cache folder
+     * 
+     * @param objectKey 
+     * @returns 
+     */
+    private removeItemFromCacheFolder(objectKey: string) {
+        console.debug(
+            `${this.moduleName}::removeItemFromCacheFolder - Removing ${objectKey} from cache folder`
+        );
+
+        const s3Link = this.findItemInCache(objectKey);
+
+        if (!s3Link) {
+            console.debug(
+                `${this.moduleName}: No cached s3Link found for objectKey ${objectKey}. Nothing to remove from cache folder`
+            );
+            return;
+        }
+
+        const fileName = `${s3Link.versionId}${path.extname(objectKey)}`;
+
+        if (fs.existsSync(fileName)) {
+            fs.unlinkSync(fileName);
+            console.debug(
+                `${this.moduleName}: Deleted file ${fileName} from cache folder`
+            );
+        } else {
+            console.debug(
+                `${this.moduleName}: No file found for ${fileName} - nothing to delete`
+            );
+        }
+    }
+
+    /**
+     * Removes a specific objectKey from localStorage
+     * 
+     * @param objectKey 
+     */
+    private removeItemFromLocalStorage(objectKey: string) {
+        console.debug(
+            `${this.moduleName}::removeItemFromLocalStorage - Removing ${objectKey} from localStorage`
+        );
+
+        const localStorageItems = Object.keys(window.localStorage);
+
+        localStorageItems.forEach((key) => {
+            if (key === `${Config.PLUGIN_NAME}/${objectKey}`) {
                 localStorage.removeItem(key);
 
                 console.debug(
