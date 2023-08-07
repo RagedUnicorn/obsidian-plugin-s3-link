@@ -27,7 +27,7 @@ export function getVaultResourcePath(arg: S3Link | TFile): string {
         throw new Error("Invalid argument");
     }
 
-    return app.vault.getResourcePath(loadedFile);;
+    return app.vault.getResourcePath(loadedFile);
 }
 
 function getAbstractFileByPath(path: string): TFile | null {
