@@ -3,127 +3,68 @@
 
 ![](docs/plugin_banner.png)
 
-> A plugin that can retrieve and cache images from AWS S3 Buckets
+> A plugin that retrieves and caches objects from AWS S3 Buckets
 
+## Overview
 
-## How to Use
+The plugin supports custom URLs to an AWS S3 Bucket, allowing users to retrieve and cache files from S3 efficiently.
 
-The plugin supports custom urls to a AWS S3 Bucket
+### Usage
 
-`s3:[objectKey]`
+To retrieve files:
 
-This will download the file that is found with the specific objectKey and cache it locally. Subsequent urls that point to the same urls will use the file from the cache. The `obsidian-plugin-s3-link` will regularly check if a newer version is available in the bucket but only download the file if it is necessary.
+* **Standard URL:** `s3:[objectKey]`
+    * Downloads and caches the file locally. It checks periodically for newer versions in the S3 bucket but only downloads if a newer version exists.
+* **Signed URL:** `s3-sign[objectKey]`
+    * Creates a signed URL instead of downloading the file. The generated signed URL is valid for 7 days and will be automatically renewed after expiration.
 
-`s3-sign[objectKey]`
+> Note: Signed URLs cannot be used with embed functionality, as embedded links expect a local file. The documentation below specifies which links support signed URLs.
 
-With the `s3-sign` scheme the plugin will create a signed url instead of downloading the file itself. The signed url that is created is valid for 7 days and the plugin will create a new one automatically once it is expired.
+### Embedding Content
 
-> **_Note:_** Signed urls can not be used with the embed functionality. Embedded links expect a local file. The following documentation shows which links support signed urls.
-
-### Image Links
-
-The classic markdown way of embedding images.
-
-Markdown image link
-
-```
+- **Image Links:**
+```markdown
 ![](s3:[objectKey])
-```
-
-Markdown signed url link
-```
 ![](s3-sign:[objectKey])
 ```
 
-### Anchor Links
-
-Markdown Link
-
-```
+- **Anchor Links:**
+```markdown
 [Name of the link](s3:[objectKey])
-```
-
-> This will create a clickable link that opens the file within obsidian
-
-```
 [Name of the link](s3-sign:[objectKey])
 ```
 
-This will create a link that opens the file within the browser
+> The first link opens the file within Obsidian, while the second opens it in the browser.
 
-### Video Links
-
-HTML video link
-
-```
-<video src="s3:[objectKey]" controls=""></video>
+- **Video Links:**
+```markdown
+<video src="s3:[objectKey]" controls></video>
+<video src="s3-sign:[objectKey]" controls></video>
 ```
 
-HTML video sign link
+> Note: Signed URLs are not supported for obsidian video embeds.
 
-```
-<video src="s3-sign:[objectKey]" controls=""></video>
-```
-
-Obsidian Video Embed
-
-```
+- **PDF & Sound Links:**
+```markdown
 ![[s3:[objectKey]]]
 ```
 
-> **_Note:_** Signed urls are not supported
-
-### PDF Links
-
-```
-![[s3:[objectKey]]]
-```
-
-> **_Note:_** Signed urls are not supported
-
-### Sound Links
-
-```
-![[s3:[objectKey]]]
-```
-
-> **_Note:_** Signed urls are not supported
-
+> Note: Signed URLs are not supported.
 
 ### Configuration
 
-The plugin needs some basic configuration before it work.
+Before using the plugin, some basic configuration is needed:
 
-##### S3 Bucket Name
+- **S3 Bucket Name:** Specify the AWS S3 Bucket name.
+- **S3 Bucket Region:** Define the region where the AWS S3 Bucket resides.
+- **AWS Credentials:** Authenticate using the `~/.aws/credentials` file or the Access Key Id and Secret Access Key.
+    - **AWS Profile:** The plugin checks all profiles in `~/.aws/credentials`.
+    - **AWS Access Key ID:** Your AWS IAM user's Access Key ID.
+    - **AWS Secret Access Key:** Your AWS IAM user's Secret Access Key.
 
-The AWS S3 Bucket name
+> Note: Using the profile is recommended to avoid storing credentials directly within Obsidian.
 
-##### S3 Bucket Region
-
-The Region the AWS S3 Bucket resides in
-
-##### AWS Credentials
-
-The plugin supports authentication via credentials file in `~/.aws/credentials` or via Access Key Id and Secret Access Key.
-
-> **_Note:_** It is recommended to use the profile to prevent credentials being stored withing obsidian
-
-###### AWS Profile
-
-The plugin will look for all profiles in `~/.aws/credentials` and make them available in the settings.
-
-###### AWS Access Key ID
-
-The Access Key ID of your AWS IAM user
-
-###### AWS Secret Access Key
-
-The Secret Access Key of your AWS IAM user
-
-##### S3 Bucket CORS configuration
-
-The AWS S3 Buckets needs to have CORS configured to allow requests from Obsidian.
-
+- **S3 Bucket CORS Configuration:** Ensure the S3 Bucket has CORS configured to accept requests from Obsidian.
 ```json
 [
     {
@@ -142,11 +83,7 @@ The AWS S3 Buckets needs to have CORS configured to allow requests from Obsidian
     }
 ]
 ```
-
-##### AWS IAM User
-
-Example IAM configuration for user read access to an S3 Bucket
-
+- **AWS IAM User:** An example IAM configuration for user read access to an S3 Bucket. 
 ```json
 {
     "Statement": [
@@ -174,28 +111,20 @@ Example IAM configuration for user read access to an S3 Bucket
 }
 ```
 
-### Commands
-
 ## Development
 
+### Setting up
 
-##### Dependencies 
-
-```
+1. **Dependencies:**
+```bash
 npm install
 ```
-
-##### Run Project
-
-This will watch the project for changes. Once the build is finished Obsidian can be reloaded with `Reload app without saving` command (usually activated with `CTRL` + `P`).
-
-```
+2. **Run Project:** This watches for project changes. After the build finishes, reload Obsidian using the `Reload app without saving` command.
+```bash
 npm run dev
 ```
-
-##### Run ESLint
-
-```
+3. **Linting:**
+```bash
 npx eslint .
 ```
 
