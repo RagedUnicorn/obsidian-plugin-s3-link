@@ -46,7 +46,7 @@ export default class ImageResolver extends Resolver {
 
             if (parts[this.s3LinkLeftPart] == Config.S3_LINK_PREFIX) {
                 console.debug(
-                    `${this.moduleName} - S3 ImageResolver found link:`,
+                    `${this.moduleName} - ImageResolver found link:`,
                     imageElement.src
                 );
 
@@ -55,7 +55,7 @@ export default class ImageResolver extends Resolver {
                 parts[this.s3LinkLeftPart] == Config.S3_SIGNED_LINK_PREFIX
             ) {
                 console.debug(
-                    `${this.moduleName} - S3 ImageResolver found sign link:`,
+                    `${this.moduleName} - ImageResolver found sign link:`,
                     imageElement.src
                 );
 

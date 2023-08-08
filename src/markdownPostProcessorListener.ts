@@ -5,7 +5,7 @@ import { getVaultResourcePath } from "./obsidianHelper";
 import { Client } from "./client";
 import { PluginSettings } from "./settings/settings";
 import ImageResolver from "./resolver/imageResolver";
-import S3VideoResolver from "./resolver/videoResolver";
+import VideoResolver from "./resolver/videoResolver";
 import SpanResolver from "./resolver/spanResolver";
 import AnchorResolver from "./resolver/anchorResolver";
 import S3LinkPlugin from "./main";
@@ -18,7 +18,7 @@ export class MarkdownPostProcessorListener {
     private s3NetworkExecutor: Client;
     private s3Cache: Cache;
     private imageResolver: ImageResolver;
-    private videoResolver: S3VideoResolver;
+    private videoResolver: VideoResolver;
     private spanResolver: SpanResolver;
     private anchorResolver: AnchorResolver;
     private pluginSettings: PluginSettings;
@@ -31,7 +31,7 @@ export class MarkdownPostProcessorListener {
         this.s3Cache = s3Cache;
         this.s3NetworkExecutor = new Client(settings, plugin);
         this.imageResolver = new ImageResolver();
-        this.videoResolver = new S3VideoResolver();
+        this.videoResolver = new VideoResolver();
         this.spanResolver = new SpanResolver();
         this.anchorResolver = new AnchorResolver();
         this.pluginSettings = settings;

@@ -1,8 +1,8 @@
 import Config from "../config";
 import Resolver from "./resolver";
 
-export default class S3VideoResolver extends Resolver {
-    private readonly moduleName = "S3VideoResolver";
+export default class VideoResolver extends Resolver {
+    private readonly moduleName = "VideoResolver";
     targetElement = "video";
 
     constructor() {
@@ -46,7 +46,7 @@ export default class S3VideoResolver extends Resolver {
 
             if (parts[this.s3LinkLeftPart] == Config.S3_LINK_PREFIX) {
                 console.debug(
-                    `${this.moduleName} - S3 VideoResolver found link:`,
+                    `${this.moduleName} - VideoResolver found link:`,
                     videoElement.src
                 );
 
@@ -55,7 +55,7 @@ export default class S3VideoResolver extends Resolver {
                 parts[this.s3LinkLeftPart] == Config.S3_SIGNED_LINK_PREFIX
             ) {
                 console.debug(
-                    `${this.moduleName} - S3 VideoResolver found sign link:`,
+                    `${this.moduleName} - VideoResolver found sign link:`,
                     videoElement.src
                 );
 

@@ -49,7 +49,7 @@ export default class SpanResolver extends Resolver {
 
                 if (parts[this.s3LinkLeftPart] == Config.S3_LINK_PREFIX) {
                     console.debug(
-                        `${this.moduleName} - S3 SpanResolver found link:`,
+                        `${this.moduleName} - SpanResolver found link:`,
                         src
                     );
 

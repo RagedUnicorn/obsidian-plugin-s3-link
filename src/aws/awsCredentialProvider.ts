@@ -16,14 +16,14 @@ const path = require("path");
  */
 export default class AwsCredentialProvider {
     private readonly moduleName = "AwsCredentialProvider";
-    profiles: AwsProfile[] = [];
+    private profiles: AwsProfile[] = [];
 
     /**
      * Get all AWS profiles from credentials file and make them available as list of AwsProfile objects
      *
      * @returns {Promise<AwsProfile[]>}
      */
-    async getAwsProfiles(): Promise<AwsProfile[]> {
+    public async getAwsProfiles(): Promise<AwsProfile[]> {
         console.debug(
             `${this.moduleName}::getAwsProfiles - Retrieving profiles`
         );
@@ -59,7 +59,7 @@ export default class AwsCredentialProvider {
      *
      * @returns the credentials for the given profile name or null if no credentials were found
      */
-    async getAwsCredentials(
+    public async getAwsCredentials(
         profileName: string
     ): Promise<AwsCredential | null> {
         console.debug(

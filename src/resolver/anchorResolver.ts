@@ -46,7 +46,7 @@ export default class AnchorResolver extends Resolver {
 
             if (parts[this.s3LinkLeftPart] == Config.S3_LINK_PREFIX) {
                 console.debug(
-                    `${this.moduleName} - S3 AnchorResolver found link:`,
+                    `${this.moduleName} - AnchorResolver found link:`,
                     anchorElement.href
                 );
 
@@ -55,7 +55,7 @@ export default class AnchorResolver extends Resolver {
                 parts[this.s3LinkLeftPart] == Config.S3_SIGNED_LINK_PREFIX
             ) {
                 console.debug(
-                    `${this.moduleName} - S3 AnchorResolver found sign link:`,
+                    `${this.moduleName} - AnchorResolver found sign link:`,
                     anchorElement.href
                 );
 
