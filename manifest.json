@@ -3,7 +3,7 @@
     "name": "S3 Link Plugin",
     "version": "1.0.0",
     "minAppVersion": "0.15.0",
-    "description": "The S3 Link Plugin allows you to link to files stored on AWS S3. Filese are downloaded and cached locally and the plugin supports authentication via AWS IAM.",
+    "description": "The S3 Link Plugin allows you to link to files stored on AWS S3. Files are downloaded and cached locally and the plugin supports authentication via AWS IAM.",
     "author": "Michael Wiesendanger",
     "authorUrl": "https://github.com/RagedUnicorn/obsidian-plugin-s3-link",
     "isDesktopOnly": true
