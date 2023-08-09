@@ -23,8 +23,6 @@ jobs:
           mkdir ${{ env.PLUGIN_NAME }}
           cp main.js manifest.json ${{ env.PLUGIN_NAME }}
           zip -r ${{ env.PLUGIN_NAME }}.zip ${{ env.PLUGIN_NAME }}
-          ls
-          cho "{tag_name}={$(git tag --sort version:refname | tail -n 1)}" >> $GITHUB_OUTPUT
       - name: "Create release"
         uses: "actions/github-script@v6"
         with:
