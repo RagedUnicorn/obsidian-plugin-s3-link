@@ -14,6 +14,7 @@ jobs:
       - name: Install Dependencies
         run: |
           npm install
+          npm run build
           mkdir ${{ env.PLUGIN_NAME }}
           cp main.js manifest.json ${{ env.PLUGIN_NAME }}
           zip -r ${{ env.PLUGIN_NAME }}.zip ${{ env.PLUGIN_NAME }}
