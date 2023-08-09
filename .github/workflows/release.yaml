@@ -1,5 +1,8 @@
 name: "Release GitHub"
-on: [workflow_dispatch]
+on:
+  push:
+    tags:
+      - "**"
 
 env:
   PLUGIN_NAME: obsidian-plugin-s3-link
@@ -9,6 +12,8 @@ jobs:
     runs-on: ubuntu-latest
     name: GitHub Release
     steps:
+      - name: "Release Tag"
+        run: "echo \"RELEASE_TAG=${GITHUB_REF#refs/tags/}\" >> $GITHUB_ENV"
       - name: Checkout Repository
         uses: actions/checkout@v3
       - name: Install Dependencies
@@ -19,25 +24,25 @@ jobs:
           cp main.js manifest.json ${{ env.PLUGIN_NAME }}
           zip -r ${{ env.PLUGIN_NAME }}.zip ${{ env.PLUGIN_NAME }}
           ls
-          echo "::set-output name=tag_name::$(git tag --sort version:refname | tail -n 1)"
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VERSION: ${{ github.ref }}
+          cho "{tag_name}={$(git tag --sort version:refname | tail -n 1)}" >> $GITHUB_OUTPUT
+      - name: "Create release"
+        uses: "actions/github-script@v6"
         with:
-          tag_name: ${{ github.ref }}
-          release_name: ${{ github.ref }}
-          draft: false
-          prerelease: false
-      - name: Upload zip file
-        id: upload-zip
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./${{ env.PLUGIN_NAME }}.zip
-          asset_name: ${{ env.PLUGIN_NAME }}-${{ steps.build.outputs.tag_name }}.zip
-          asset_content_type: application/zip
+            github-token: "${{ secrets.GITHUB_TOKEN }}"
+            script: |
+              try {
+                const response = await github.rest.repos.createRelease({
+                  draft: false,
+                  generate_release_notes: true,
+                  name: process.env.RELEASE_TAG,
+                  owner: context.repo.owner,
+                  prerelease: false,
+                  repo: context.repo.repo,
+                  tag_name: process.env.RELEASE_TAG,
+                });
+
+                core.exportVariable('RELEASE_ID', response.data.id);
+                core.exportVariable('RELEASE_UPLOAD_URL', response.data.upload_url);
+              } catch (error) {
+                core.setFailed(error.message);
+              }
