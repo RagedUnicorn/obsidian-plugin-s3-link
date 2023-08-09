@@ -1,7 +1,7 @@
 import { Plugin } from "obsidian";
 import Config from "./config";
 import Cache from "./cache";
-import { MarkdownPostProcessorListener } from "./markdownPostProcessorListener";
+import { S3PostProcessor } from "./s3PostProcessor";
 import { PluginSettingsTab } from "./settings/settingsTab";
 import {
     PluginSettings,
@@ -19,6 +19,7 @@ export default class S3LinkPlugin extends Plugin {
     settings: PluginSettings;
     pluginState: PluginState;
     statusBar: StatusBar;
+    s3PostProcessor: S3PostProcessor;
 
     async onload() {
         console.info(
@@ -72,27 +73,27 @@ export default class S3LinkPlugin extends Plugin {
             this.setState(PluginState.CONFIG);
         }
 
-        this.markdownPostProcessorListener.onSettingsChanged(this.settings);
+        this.s3PostProcessor.onSettingsChanged(this.settings);
     }
 
     /**
      *
-     * @param s3Cache
+     * @param cache
      */
-    private setupMarkdownPostProcessor(s3Cache: Cache) {
+    private setupMarkdownPostProcessor(cache: Cache) {
         console.debug(
             `${this.moduleName}::setupMarkdownPostProcessor - Setting up markdown post processor`
         );
 
-        const markdownPostProcessorListener = new MarkdownPostProcessorListener(
+        this.s3PostProcessor = new S3PostProcessor(
             this,
-            s3Cache,
+            cache,
             this.settings
         );
 
         this.registerMarkdownPostProcessor(
-            markdownPostProcessorListener.onMarkdownPostProcessor.bind(
-                markdownPostProcessorListener
+            this.s3PostProcessor.onMarkdownPostProcessor.bind(
+                this.s3PostProcessor
             )
         );
     }

@@ -13,10 +13,10 @@ import S3Link from "./model/s3Link";
 import { sendNotification } from "./ui/notification";
 import * as path from "path";
 
-export class MarkdownPostProcessorListener {
-    private readonly moduleName = "MarkdownPostProcessorListener";
-    private s3NetworkExecutor: Client;
-    private s3Cache: Cache;
+export class S3PostProcessor {
+    private readonly moduleName = "S3PostProcessor";
+    private client: Client;
+    private cache: Cache;
     private imageResolver: ImageResolver;
     private videoResolver: VideoResolver;
     private spanResolver: SpanResolver;
@@ -25,17 +25,17 @@ export class MarkdownPostProcessorListener {
 
     constructor(
         plugin: S3LinkPlugin,
-        s3Cache: Cache,
+        cache: Cache,
         settings: PluginSettings
     ) {
-        this.s3Cache = s3Cache;
-        this.s3NetworkExecutor = new Client(settings, plugin);
+        this.cache = cache;
+        this.client = new Client(settings, plugin);
         this.imageResolver = new ImageResolver();
         this.videoResolver = new VideoResolver();
         this.spanResolver = new SpanResolver();
         this.anchorResolver = new AnchorResolver();
         this.pluginSettings = settings;
-        this.s3NetworkExecutor.initializeS3Client(this.pluginSettings);
+        this.client.initializeS3Client(this.pluginSettings);
     }
 
     /**
@@ -45,7 +45,7 @@ export class MarkdownPostProcessorListener {
      */
     public onSettingsChanged(settings: PluginSettings) {
         console.debug("Settings changed, reinitializing s3Client...");
-        this.s3NetworkExecutor.initializeS3Client(settings);
+        this.client.initializeS3Client(settings);
     }
 
     /**
@@ -103,11 +103,11 @@ export class MarkdownPostProcessorListener {
                 `${this.moduleName} - Processing S3 link ${objectKey}`
             );
 
-            const cachedS3Link = this.s3Cache.findItemInCache(objectKey);
+            const cachedS3Link = this.cache.findItemInCache(objectKey);
 
             if (cachedS3Link != null) {
                 if (
-                    this.s3Cache.isS3LinkCacheItemExpired(
+                    this.cache.isS3LinkCacheItemExpired(
                         cachedS3Link.lastUpdate
                     )
                 ) {
@@ -129,7 +129,7 @@ export class MarkdownPostProcessorListener {
                     }
 
                     // update cache
-                    this.s3Cache.writeItemToCache(objectKey, versionId);
+                    this.cache.writeItemToCache(objectKey, versionId);
 
                     if (versionId != cachedS3Link.versionId) {
                         console.log(
@@ -160,7 +160,7 @@ export class MarkdownPostProcessorListener {
                 } else {
                     console.debug(`${this.moduleName} - Cache not expired`);
                     // update last checked timestamp
-                    this.s3Cache.writeItemToCache(
+                    this.cache.writeItemToCache(
                         objectKey,
                         cachedS3Link.versionId
                     );
@@ -211,7 +211,7 @@ export class MarkdownPostProcessorListener {
             );
 
             const cachedS3SignLink =
-                this.s3Cache.findSignedUrlInCache(objectKey);
+                this.cache.findSignedUrlInCache(objectKey);
 
             if (cachedS3SignLink != null) {
                 this.updateSignLinkReferences(
@@ -258,7 +258,7 @@ export class MarkdownPostProcessorListener {
                 "Failed to retrieve cached item. Item will be reloaded next time you open the file or reload Obsidian."
             );
 
-            this.s3Cache.removeItemFromCache(objectKey);
+            this.cache.removeItemFromCache(objectKey);
 
             return; // abort updating link references
         }
@@ -310,12 +310,12 @@ export class MarkdownPostProcessorListener {
     }
 
     private async initNewS3Item(objectKey: string): Promise<string> {
-        const versionId = await this.s3NetworkExecutor.getLatestObjectVersion(
+        const versionId = await this.client.getLatestObjectVersion(
             objectKey
         );
 
         if (versionId) {
-            this.s3Cache.writeItemToCache(objectKey, versionId);
+            this.cache.writeItemToCache(objectKey, versionId);
 
             return versionId;
         }
@@ -336,9 +336,9 @@ export class MarkdownPostProcessorListener {
         objectKey: string,
         versionId: string
     ): Promise<TFile> {
-        const objectData = await this.s3NetworkExecutor.getObject(objectKey);
+        const objectData = await this.client.getObject(objectKey);
 
-        return this.s3Cache.saveFileToCacheFolder(
+        return this.cache.saveFileToCacheFolder(
             objectKey,
             versionId,
             objectData
@@ -353,10 +353,10 @@ export class MarkdownPostProcessorListener {
      * @returns
      */
     private async getS3SignedUrl(objectKey: string): Promise<string> {
-        const signedUrl = await this.s3NetworkExecutor.getSignedUrlForObject(
+        const signedUrl = await this.client.getSignedUrlForObject(
             objectKey
         );
-        this.s3Cache.writeSignedUrlToLocalStorage(objectKey, signedUrl);
+        this.cache.writeSignedUrlToLocalStorage(objectKey, signedUrl);
 
         return signedUrl;
     }
@@ -374,7 +374,7 @@ export class MarkdownPostProcessorListener {
         objectKey: string,
         s3Link: S3Link
     ): Promise<string | null> {
-        const versionId = await this.s3NetworkExecutor.getLatestObjectVersion(
+        const versionId = await this.client.getLatestObjectVersion(
             objectKey
         );
 
