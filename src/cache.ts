@@ -74,7 +74,9 @@ export default class Cache {
         );
 
         if (await app.vault.adapter.exists(objectPath)) {
-            console.debug(`${this.moduleName}: File already exists in cache, returning existing file`);
+            console.debug(
+                `${this.moduleName}: File already exists in cache, returning existing file`
+            );
             return app.vault.getAbstractFileByPath(objectPath) as TFile;
         }
 
