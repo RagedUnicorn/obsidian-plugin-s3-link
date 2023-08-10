@@ -73,6 +73,11 @@ export default class Cache {
             `${this.moduleName}: Saving object to cache folder: ${objectPath}`
         );
 
+        if (await app.vault.adapter.exists(objectPath)) {
+            console.debug(`${this.moduleName}: File already exists in cache, returning existing file`);
+            return app.vault.getAbstractFileByPath(objectPath) as TFile;
+        }
+
         return app.vault.createBinary(objectPath, objectData);
     }
 
@@ -327,9 +332,9 @@ export default class Cache {
 
     /**
      * Removes a specific objectKey from the cache folder
-     * 
-     * @param objectKey 
-     * @returns 
+     *
+     * @param objectKey
+     * @returns
      */
     private removeItemFromCacheFolder(objectKey: string) {
         console.debug(
@@ -361,8 +366,8 @@ export default class Cache {
 
     /**
      * Removes a specific objectKey from localStorage
-     * 
-     * @param objectKey 
+     *
+     * @param objectKey
      */
     private removeItemFromLocalStorage(objectKey: string) {
         console.debug(
