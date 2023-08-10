@@ -128,6 +128,24 @@ npm run dev
 npx eslint .
 ```
 
+### Creating Releases
+
+Releases for this project are automated using GitHub Actions. Here's how it works:
+
+1. **Tagging a Release:** To initiate a new release, you need to create a new git tag. Use the following convention for versioning: `vx.x.x`.
+
+```bash
+git tag vx.x.x
+```
+
+2. **Pushing the Tag:** After creating the tag, push it to the repository. This will trigger the GitHub Action to create a new release.
+
+```bash
+git push --tags
+```
+
+3. **GitHub Actions:** Once the tag is pushed, the GitHub Action associated with release creation is automatically invoked. You can view the workflow in the `.github/workflows/release.yaml` directory of the repository.
+
 ## License
 
 MIT License

@@ -25,7 +25,7 @@ jobs:
           zip -r ${{ env.PLUGIN_NAME }}.zip ${{ env.PLUGIN_NAME }}
       - name: "Create release"
         run: |
-          gh release create $RELEASE_TAG ${{ env.PLUGIN_NAME }}.zip main.js manifest.json --title $RELEASE_TAG --notes "Release $RELEASE_TAG"
+          gh release create $RELEASE_TAG ${{ env.PLUGIN_NAME }}.zip main.js manifest.json --title $RELEASE_TAG --generate-notes
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
