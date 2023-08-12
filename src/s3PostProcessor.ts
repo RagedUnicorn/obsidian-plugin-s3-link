@@ -107,9 +107,7 @@ export class S3PostProcessor {
 
             if (cachedS3Link != null) {
                 if (
-                    this.cache.isS3LinkCacheItemExpired(
-                        cachedS3Link.lastUpdate
-                    )
+                    this.cache.isS3LinkCacheItemExpired(cachedS3Link.lastUpdate)
                 ) {
                     console.debug(
                         `${this.moduleName} - Cache for ${objectKey} expired`
@@ -210,8 +208,7 @@ export class S3PostProcessor {
                 `${this.moduleName} - Processing S3 signLink ${objectKey}`
             );
 
-            const cachedS3SignLink =
-                this.cache.findSignedUrlInCache(objectKey);
+            const cachedS3SignLink = this.cache.findSignedUrlInCache(objectKey);
 
             if (cachedS3SignLink != null) {
                 this.updateSignLinkReferences(
@@ -221,8 +218,9 @@ export class S3PostProcessor {
             } else {
                 try {
                     const signedUrl = await this.getS3SignedUrl(objectKey);
-
+                    if (signedUrl != null) {
                     this.updateSignLinkReferences(htmlElements, signedUrl);
+                    }
                 } catch (error) {
                     console.error(
                         `${this.moduleName} - Error processing S3 signLink ${objectKey} ignoring link`,
@@ -310,9 +308,7 @@ export class S3PostProcessor {
     }
 
     private async initNewS3Item(objectKey: string): Promise<string> {
-        const versionId = await this.client.getLatestObjectVersion(
-            objectKey
-        );
+        const versionId = await this.client.getLatestObjectVersion(objectKey);
 
         if (versionId) {
             this.cache.writeItemToCache(objectKey, versionId);
@@ -352,10 +348,16 @@ export class S3PostProcessor {
      *
      * @returns
      */
-    private async getS3SignedUrl(objectKey: string): Promise<string> {
-        const signedUrl = await this.client.getSignedUrlForObject(
-            objectKey
+    private async getS3SignedUrl(objectKey: string): Promise<string | null> {
+        const versionId = await this.client.getLatestObjectVersion(objectKey);
+
+        if (versionId == null) {
+            console.debug(
+                `${this.moduleName} - Error retrieving versionId for objectKey ${objectKey}`
         );
+            return null;
+        }
+        const signedUrl = await this.client.getSignedUrlForObject(objectKey);
         this.cache.writeSignedUrlToLocalStorage(objectKey, signedUrl);
 
         return signedUrl;
@@ -374,9 +376,7 @@ export class S3PostProcessor {
         objectKey: string,
         s3Link: S3Link
     ): Promise<string | null> {
-        const versionId = await this.client.getLatestObjectVersion(
-            objectKey
-        );
+        const versionId = await this.client.getLatestObjectVersion(objectKey);
 
         if (versionId && versionId == s3Link.versionId) {
             console.debug(

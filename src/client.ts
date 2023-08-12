@@ -94,11 +94,17 @@ export class Client {
     ): Promise<string | undefined> {
         try {
             const response = await this.getObjectMetadata(objectKey);
-            const objectVersions = response.Versions;
             const VERSION_LATEST = 0;
 
-            if (objectVersions != null) {
-                const versionId = objectVersions[VERSION_LATEST].VersionId;
+            // Filter the object versions to only contain the exact objectKey
+            const exactFilteredVersion =
+                response.Versions?.filter(
+                    (version) => version.Key === objectKey
+                ) || [];
+
+            if (exactFilteredVersion != null && exactFilteredVersion.length > 0) {
+                const versionId =
+                    exactFilteredVersion[VERSION_LATEST].VersionId;
                 console.debug(
                     `${this.moduleName}: Retrieved versionId ${versionId} for object ${objectKey}`
                 );
