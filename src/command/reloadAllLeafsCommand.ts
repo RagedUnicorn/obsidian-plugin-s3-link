@@ -2,6 +2,7 @@ import S3LinkPlugin from "src/main";
 import Command from "./command";
 import Config from "src/config";
 import { sendNotification } from "src/ui/notification";
+import { MarkdownView, WorkspaceLeaf } from "obsidian";
 
 /**
  * Reloads the active leaf if it is a preview leaf. The command is only visible if the active leaf is a preview leaf.
@@ -13,30 +14,40 @@ export default class ReloadAllLeafsCommand extends Command {
 
     public addCommand(plugin: S3LinkPlugin): void {
         console.debug(`${this.moduleName}::addCommand - Adding command`);
-	
-		plugin.addCommand({
-			id: this.commandId,
-			name: this.commandName,
-			checkCallback: (checking: boolean) => {
-				const activeLeaf = plugin.app.workspace.activeLeaf;
-	
-				if (activeLeaf != null) {
-					if (!checking) {
-						console.warn("Test");
-					}
-	
-					return true;
-				}
-	
-				return false;
-			},
-		});
+
+        plugin.addCommand({
+            id: this.commandId,
+            name: this.commandName,
+            checkCallback: (checking: boolean) => {
+                const markdownLeaves =
+                    plugin.app.workspace.getLeavesOfType("markdown");
+
+                if (markdownLeaves.length) {
+                    if (!checking) {
+                        this.executeCommand(markdownLeaves);
+                    }
+
+                    return true;
+                }
+            },
+        });
     }
 
-    protected executeCommand(activeLeaf: any): void {
-        // @ts-ignore
-        activeLeaf.rebuildView();
+    protected executeCommand(markdownLeaves: WorkspaceLeaf[]): void {
+        console.debug("Rebuilding all open preview leafs");
 
-        sendNotification("Reloaded active leaf");
+        markdownLeaves.forEach((leaf: WorkspaceLeaf) => {
+            if (leaf.view instanceof MarkdownView) {
+                const markdownView = leaf.view as MarkdownView;
+
+                if (markdownView.getMode() !== "preview") {
+                    return;
+                }
+                // @ts-ignore
+                markdownView.leaf.rebuildView();
+            }
+        });
+
+        sendNotification("Reloaded all open leaves");
     }
 }
