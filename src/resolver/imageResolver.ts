@@ -71,4 +71,33 @@ export default class ImageResolver extends Resolver {
             signObjectKeys: this.signObjectKeys,
         };
     }
+
+    /**
+     * Search an html element for all image tags that contain a link to an S3 cached object based on a data attribute.
+     * If an element does not contain a data attribute, it is ignored.
+     * 
+     * This method only make sense to be called after the plugin updated the rendered view with links to the local cache.
+     * 
+     * @param element
+     * 
+     * @returns 
+     */
+    public findAllObjectKeysInElement(element: HTMLElement): string[] {
+        const objectKeys: string[] = [];
+        const imageElements = element.querySelectorAll(
+            this.targetElement
+        ) as NodeListOf<HTMLImageElement>;
+            
+        imageElements.forEach((imageElement) => {
+            const s3Data = imageElement.getAttribute(
+                Config.S3_LINK_PLUGIN_DATA_ATTRIBUTE
+            );
+
+            if (s3Data) {
+                objectKeys.push(s3Data);
+            }
+        });
+
+        return objectKeys;
+    }
 }

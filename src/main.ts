@@ -8,10 +8,13 @@ import {
     DEFAULT_SETTINGS,
     isPluginReadyState,
 } from "./settings/settings";
-import { addPluginCommands } from "./commands";
 import { PluginState } from "./pluginState";
 import { StatusBar } from "./ui/statusBar";
 import { sendNotification } from "./ui/notification";
+import ClearCacheGlobalCommand from "./command/clearCacheGlobalCommand";
+import ClearCacheLocalCommand from "./command/clearCacheLocalCommand";
+import ReloadActiveLeafCommand from "./command/reloadActiveLeafCommand";
+import ReloadAllLeafsCommand from "./command/reloadAllLeafsCommand";
 
 export default class S3LinkPlugin extends Plugin {
     private readonly moduleName = "Main";
@@ -35,7 +38,7 @@ export default class S3LinkPlugin extends Plugin {
         this.cache = await new Cache();
         this.setupMarkdownPostProcessor(this.cache);
 
-        addPluginCommands(this);
+        this.addPluginCommands(this);
 
         if (isPluginReadyState(this.settings)) {
             this.setState(PluginState.READY);
@@ -76,6 +79,13 @@ export default class S3LinkPlugin extends Plugin {
         this.s3PostProcessor.onSettingsChanged(this.settings);
     }
 
+    private addPluginCommands(plugin: S3LinkPlugin) {
+        new ClearCacheGlobalCommand().addCommand(plugin);
+        new ClearCacheLocalCommand().addCommand(plugin);
+        new ReloadActiveLeafCommand().addCommand(plugin);
+        new ReloadAllLeafsCommand().addCommand(plugin);
+    }
+
     /**
      *
      * @param cache
@@ -85,11 +95,7 @@ export default class S3LinkPlugin extends Plugin {
             `${this.moduleName}::setupMarkdownPostProcessor - Setting up markdown post processor`
         );
 
-        this.s3PostProcessor = new S3PostProcessor(
-            this,
-            cache,
-            this.settings
-        );
+        this.s3PostProcessor = new S3PostProcessor(this, cache, this.settings);
 
         this.registerMarkdownPostProcessor(
             this.s3PostProcessor.onMarkdownPostProcessor.bind(

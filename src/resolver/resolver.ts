@@ -17,6 +17,8 @@ export default abstract class Resolver {
         signObjectKeys: Map<string, HTMLElement[]>;
     };
 
+    public abstract findAllObjectKeysInElement(element: HTMLElement): string[];
+
     protected addObjectKey(objectKey: string, htmlElement: HTMLElement) {
         if (this.objectKeys.has(objectKey)) {
             this.objectKeys.get(objectKey)?.push(htmlElement);

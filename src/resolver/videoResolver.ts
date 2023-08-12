@@ -71,4 +71,33 @@ export default class VideoResolver extends Resolver {
             signObjectKeys: this.signObjectKeys,
         };
     }
+
+    /**
+     * Search an html element for all video tags that contain a link to an S3 cached object based on a data attribute.
+     * If an element does not contain a data attribute, it is ignored.
+     * 
+     * This method only make sense to be called after the plugin updated the rendered view with links to the local cache.
+     * 
+     * @param element
+     * 
+     * @returns 
+     */
+    public findAllObjectKeysInElement(element: HTMLElement): string[] {
+        const objectKeys: string[] = [];
+        const videoElements = element.querySelectorAll(
+            this.targetElement
+        ) as NodeListOf<HTMLVideoElement>;
+            
+        videoElements.forEach((videoElement) => {
+            const s3Data = videoElement.getAttribute(
+                Config.S3_LINK_PLUGIN_DATA_ATTRIBUTE
+            );
+
+            if (s3Data) {
+                objectKeys.push(s3Data);
+            }
+        });
+
+        return objectKeys;
+    }
 }

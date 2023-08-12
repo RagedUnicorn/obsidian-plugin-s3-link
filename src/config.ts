@@ -10,4 +10,5 @@ export default abstract class Config {
     static readonly S3_SIGNED_LINK_PREFIX = "s3-sign";
     static readonly S3_SIGNED_LINK_EXPIRATION_TIME_SECONDS = 60 * 60 * 24 * 7; // 7 days
     static readonly OBSIDIAN_APP_LINK_PREFIX = "obsidian://open?file=";
+    static readonly S3_LINK_PLUGIN_DATA_ATTRIBUTE = "data-object-key";
 }

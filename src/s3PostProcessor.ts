@@ -23,11 +23,7 @@ export class S3PostProcessor {
     private anchorResolver: AnchorResolver;
     private pluginSettings: PluginSettings;
 
-    constructor(
-        plugin: S3LinkPlugin,
-        cache: Cache,
-        settings: PluginSettings
-    ) {
+    constructor(plugin: S3LinkPlugin, cache: Cache, settings: PluginSettings) {
         this.cache = cache;
         this.client = new Client(settings, plugin);
         this.imageResolver = new ImageResolver();
@@ -213,13 +209,18 @@ export class S3PostProcessor {
             if (cachedS3SignLink != null) {
                 this.updateSignLinkReferences(
                     htmlElements,
+                    objectKey,
                     cachedS3SignLink.signedUrl
                 );
             } else {
                 try {
                     const signedUrl = await this.getS3SignedUrl(objectKey);
                     if (signedUrl != null) {
-                    this.updateSignLinkReferences(htmlElements, signedUrl);
+                        this.updateSignLinkReferences(
+                            htmlElements,
+                            objectKey,
+                            signedUrl
+                        );
                     }
                 } catch (error) {
                     console.error(
@@ -277,11 +278,17 @@ export class S3PostProcessor {
                     Config.OBSIDIAN_APP_LINK_PREFIX
                 }${versionId}${path.extname(objectKey)}`;
             }
+
+            htmlElement.setAttribute(
+                Config.S3_LINK_PLUGIN_DATA_ATTRIBUTE,
+                objectKey
+            );
         });
     }
 
     private updateSignLinkReferences(
         htmlElements: HTMLElement[],
+        objectKey: string,
         signedUrl: string
     ) {
         console.debug(
@@ -304,6 +311,11 @@ export class S3PostProcessor {
             } else if (htmlElement instanceof HTMLAnchorElement) {
                 htmlElement.href = signedUrl;
             }
+
+            htmlElement.setAttribute(
+                Config.S3_LINK_PLUGIN_DATA_ATTRIBUTE,
+                `${Config.S3_SIGNED_LINK_PREFIX}/${objectKey}`
+            );
         });
     }
 
@@ -354,7 +366,7 @@ export class S3PostProcessor {
         if (versionId == null) {
             console.debug(
                 `${this.moduleName} - Error retrieving versionId for objectKey ${objectKey}`
-        );
+            );
             return null;
         }
         const signedUrl = await this.client.getSignedUrlForObject(objectKey);

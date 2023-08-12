@@ -387,6 +387,15 @@ export default class Cache {
                     `${this.moduleName}: Removed item with key: ${key}`
                 );
             }
+
+            if (
+                key ===
+                `${Config.PLUGIN_NAME}/${Config.S3_SIGNED_LINK_PREFIX}/${objectKey}`
+            ) {
+                console.debug(
+                    `${this.moduleName}: Removed sign item with key: ${key}`
+                );
+            }
         });
     }
 }
