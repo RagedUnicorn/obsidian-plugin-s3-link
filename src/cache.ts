@@ -353,9 +353,10 @@ export default class Cache {
         }
 
         const fileName = `${s3Link.versionId}${path.extname(objectKey)}`;
+        const filePath = `${this.getCachePath()}\\${fileName}`;
 
-        if (fs.existsSync(fileName)) {
-            fs.unlinkSync(fileName);
+        if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
             console.debug(
                 `${this.moduleName}: Deleted file ${fileName} from cache folder`
             );
