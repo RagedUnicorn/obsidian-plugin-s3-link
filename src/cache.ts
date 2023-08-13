@@ -4,6 +4,8 @@ import S3Link from "./model/s3Link";
 import S3SignedLink from "./model/s3SignedLink";
 import * as path from "path";
 import * as fs from "fs";
+import { Readable } from "stream";
+import { createWriteStream } from "fs";
 
 export default class Cache {
     private readonly moduleName = "Cache";
@@ -64,10 +66,10 @@ export default class Cache {
     public async saveFileToCacheFolder(
         objectKey: string,
         versionId: string,
-        objectData: Uint8Array
-    ): Promise<TFile> {
+        stream: Readable
+    ): Promise<TFile | void> {
         const fileExtension = path.extname(objectKey);
-        const objectPath = `${Config.CACHE_FOLDER}/${versionId}${fileExtension}`;
+        const objectPath = `${this.getCachePath()}\\${versionId}${fileExtension}`;
 
         console.info(
             `${this.moduleName}: Saving object to cache folder: ${objectPath}`
@@ -80,7 +82,17 @@ export default class Cache {
             return app.vault.getAbstractFileByPath(objectPath) as TFile;
         }
 
-        return app.vault.createBinary(objectPath, objectData);
+        return new Promise((resolve, reject) => {
+            const writeStream = createWriteStream(objectPath);
+
+            writeStream.on("finish", function () {
+                resolve();
+            });
+            writeStream.on("error", reject);
+            stream.on("error", reject);
+
+            stream.pipe(writeStream);
+        });
     }
 
     /**

@@ -248,26 +248,18 @@ export class S3PostProcessor {
             `${this.moduleName}::updateLinkReferences - Updating link references`
         );
 
-        let resourcePath = "";
-
-        try {
-            resourcePath = getVaultResourcePath(resource);
-        } catch (error) {
-            sendNotification(
-                "Failed to retrieve cached item. Item will be reloaded next time you open the file or reload Obsidian."
-            );
-
-            this.cache.removeItemFromCache(objectKey);
-
-            return; // abort updating link references
-        }
-
-        htmlElements.forEach((htmlElement) => {
+        htmlElements.forEach(async (htmlElement) => {
             if (htmlElement instanceof HTMLImageElement) {
-                htmlElement.src = resourcePath;
+                htmlElement.src = await this.getResourcePath(
+                    resource,
+                    objectKey
+                );
             } else if (htmlElement instanceof HTMLVideoElement) {
                 htmlElement.autoplay = false;
-                htmlElement.src = resourcePath;
+                htmlElement.src = await this.getResourcePath(
+                    resource,
+                    objectKey
+                );
             } else if (htmlElement instanceof HTMLSpanElement) {
                 htmlElement.setAttribute(
                     "src",
@@ -284,6 +276,30 @@ export class S3PostProcessor {
                 objectKey
             );
         });
+    }
+
+    /**
+     * Note: It seems like having await getVaultResourcePath(resource) in the updateLinkReferences method
+     * causes span elements to not load properly. It is important that the resourcePath is only retrieved
+     * for elements that actually need it.
+     * 
+     * @param resource 
+     * @param objectKey 
+     * @returns 
+     */
+    private async getResourcePath(resource: S3Link | TFile, objectKey: string) {
+        let resourcePath = "";
+
+        try {
+            resourcePath = await getVaultResourcePath(resource);
+        } catch (error) {
+            sendNotification(
+                "Failed to retrieve cached item. Item will be reloaded next time you open the file or reload Obsidian."
+            );
+            this.cache.removeItemFromCache(objectKey);
+        }
+
+        return resourcePath;
     }
 
     private updateSignLinkReferences(
@@ -343,14 +359,21 @@ export class S3PostProcessor {
     private async loadS3Item(
         objectKey: string,
         versionId: string
-    ): Promise<TFile> {
-        const objectData = await this.client.getObject(objectKey);
-
-        return this.cache.saveFileToCacheFolder(
+    ): Promise<TFile | S3Link> {
+        const stream = await this.client.getObject(objectKey);
+        const savedFile = await this.cache.saveFileToCacheFolder(
             objectKey,
             versionId,
-            objectData
+            stream
         );
+
+        if (savedFile instanceof TFile) {
+            // if the instance is a tfile it means that the file was already cached and was loaded from the cache
+            return savedFile as TFile;
+        } else {
+            // if the instance is a s3link it means that the file was not cached and was loaded from s3
+            return new S3Link(objectKey, Date.now(), versionId);
+        }
     }
 
     /**

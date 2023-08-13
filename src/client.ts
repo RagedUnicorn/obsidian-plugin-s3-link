@@ -13,6 +13,7 @@ import S3LinkPlugin from "./main";
 import { PluginState } from "./pluginState";
 import { sendNotification } from "./ui/notification";
 import { isPluginReadyState } from "./settings/settings";
+import { Readable } from "stream";
 
 export class Client {
     private readonly moduleName = "Client";
@@ -102,7 +103,10 @@ export class Client {
                     (version) => version.Key === objectKey
                 ) || [];
 
-            if (exactFilteredVersion != null && exactFilteredVersion.length > 0) {
+            if (
+                exactFilteredVersion != null &&
+                exactFilteredVersion.length > 0
+            ) {
                 const versionId =
                     exactFilteredVersion[VERSION_LATEST].VersionId;
                 console.debug(
@@ -142,7 +146,7 @@ export class Client {
         return response;
     }
 
-    public async getObject(objectKey: string): Promise<Uint8Array> {
+    public async getObject(objectKey: string): Promise<Readable> {
         if (!this.s3Client) {
             throw new Error("S3Client not initialized");
         }
@@ -155,7 +159,11 @@ export class Client {
             const response = await this.s3Client.send(command);
 
             if (response.Body) {
-                return await response.Body.transformToByteArray();
+                const stream = this.browserStreamToReadable(
+                    response.Body as ReadableStream
+                );
+
+                return stream;
             } else {
                 throw new Error(
                     `Failed to retrieve object ${objectKey} from S3`
@@ -165,6 +173,22 @@ export class Client {
             console.error("Error retrieving object from S3", error);
             throw error;
         }
+    }
+
+    private browserStreamToReadable(
+        browserStream: ReadableStream
+    ): Readable {
+        const reader = browserStream.getReader();
+        return new Readable({
+            async read() {
+                const result = await reader.read();
+                if (result.done) {
+                    this.push(null);
+                } else {
+                    this.push(Buffer.from(result.value));
+                }
+            },
+        });
     }
 
     public async getSignedUrlForObject(objectKey: string): Promise<string> {
