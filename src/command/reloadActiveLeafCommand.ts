@@ -1,7 +1,7 @@
 import S3LinkPlugin from "src/main";
 import Command from "./command";
 import Config from "src/config";
-import { MarkdownView } from "obsidian";
+import { MarkdownView, WorkspaceLeaf } from "obsidian";
 import { sendNotification } from "src/ui/notification";
 
 /**
@@ -38,7 +38,7 @@ export default class ReloadActiveLeafCommand extends Command {
         });
     }
 
-    protected executeCommand(activeLeaf: any): void {
+    protected executeCommand(activeLeaf: WorkspaceLeaf): void {
         // @ts-ignore
         activeLeaf.rebuildView();
 
