@@ -36,6 +36,7 @@ export default class S3LinkPlugin extends Plugin {
         this.addSettingTab(new PluginSettingsTab(this.app, this));
 
         this.cache = await new Cache();
+        this.cache.init();
         this.setupMarkdownPostProcessor(this.cache);
 
         this.addPluginCommands(this);

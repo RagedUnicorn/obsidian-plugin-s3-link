@@ -9,13 +9,8 @@ import { createWriteStream } from "fs";
 
 export default class Cache {
     private readonly moduleName = "Cache";
-    private vault = window.app.vault;
 
-    constructor() {
-        this.init();
-    }
-
-    private async init() {
+    public async init() {
         const isFolderExisting = await this.isCacheFolderPresent();
 
         if (!isFolderExisting) {
@@ -48,7 +43,7 @@ export default class Cache {
      * Creates the cache folder in the root of the vault.
      */
     private createCacheFolderInBasePath() {
-        this.vault
+        app.vault
             .createFolder(Config.CACHE_FOLDER)
             .then(() => {
                 console.debug(
@@ -261,9 +256,7 @@ export default class Cache {
      * @returns the path to the cache folder
      */
     public getCachePath(): string {
-        const basePath = (
-            this.vault.adapter as FileSystemAdapter
-        ).getBasePath();
+        const basePath = (app.vault.adapter as FileSystemAdapter).getBasePath();
         const cachePath = `${basePath}\\${Config.CACHE_FOLDER}`;
 
         console.debug(`${this.moduleName}: Cachepath ${cachePath}`);
