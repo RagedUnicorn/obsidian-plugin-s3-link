@@ -77,7 +77,7 @@ describe("Cache", () => {
             const result = cache.findItemInCache(mockObjectKey);
 
             expect(result).toBeInstanceOf(S3Link);
-            expect(result!.objectKey).toBe(mockObjectKey);
+            expect(result?.objectKey).toBe(mockObjectKey);
         });
 
         it("should return null if the objectKey is not found in localStorage", () => {
@@ -131,8 +131,6 @@ describe("Cache", () => {
             const storedSignedUrl = mockSetItemCall[0];
             expect(storedSignedUrl).toBe(expectedKey);
 
-            const storedValueStr = (localStorage.setItem as jest.Mock).mock
-                .calls[0][1];
             const storedValue = JSON.parse(mockSetItemCall[1]);
             expect(storedValue.objectKey).toBe(mockObjectKey);
             expect(storedValue.signedUrl).toBe(mockSignedUrl);
@@ -159,7 +157,7 @@ describe("Cache", () => {
 
             const result = cache.findSignedUrlInCache(mockObjectKey);
             expect(result).toBeInstanceOf(S3SignedLink);
-            expect(result!.objectKey).toBe(mockObjectKey);
+            expect(result?.objectKey).toBe(mockObjectKey);
         });
 
         it("should return null for an invalid(expired) cached item", () => {
