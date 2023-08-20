@@ -1,0 +1,14 @@
+name: "Test Project"
+on: [push]
+
+jobs:
+    test-jest:
+        runs-on: ubuntu-latest
+        name: Jest testing
+        steps:
+            - name: Checkout Repository
+              uses: actions/checkout@v3
+            - name: Install Dependencies
+              run: npm ci
+            - name: Run Tests
+              run: npx jest
