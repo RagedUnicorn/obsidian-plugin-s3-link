@@ -2,7 +2,7 @@ import { TFile } from "obsidian";
 import Cache from "./cache";
 import Config from "./config";
 import { getVaultResourcePath } from "./obsidianHelper";
-import { Client } from "./client";
+import { Client } from "./network/client";
 import { PluginSettings } from "./settings/settings";
 import ImageResolver from "./resolver/imageResolver";
 import VideoResolver from "./resolver/videoResolver";
@@ -282,10 +282,10 @@ export class S3PostProcessor {
      * Note: It seems like having await getVaultResourcePath(resource) in the updateLinkReferences method
      * causes span elements to not load properly. It is important that the resourcePath is only retrieved
      * for elements that actually need it.
-     * 
-     * @param resource 
-     * @param objectKey 
-     * @returns 
+     *
+     * @param resource
+     * @param objectKey
+     * @returns
      */
     private async getResourcePath(resource: S3Link | TFile, objectKey: string) {
         let resourcePath = "";
@@ -360,7 +360,7 @@ export class S3PostProcessor {
         objectKey: string,
         versionId: string
     ): Promise<TFile | S3Link> {
-        const stream = await this.client.getObject(objectKey);
+        const stream = await this.client.getObject(objectKey, versionId);
         const savedFile = await this.cache.saveFileToCacheFolder(
             objectKey,
             versionId,

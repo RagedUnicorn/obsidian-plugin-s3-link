@@ -1,5 +1,6 @@
 export default abstract class Config {
     static readonly PLUGIN_NAME = "obsidian-plugin-s3-link";
+    static readonly MANAGER_PREFIX = "manager";
     static readonly PLUGIN_DISPLAY_NAME = "S3 Link Plugin";
     static readonly CACHE_FOLDER = "s3_cache";
     static readonly S3_LINK_PREFIX = "s3";

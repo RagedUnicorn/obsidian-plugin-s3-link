@@ -9,6 +9,7 @@ import { createWriteStream } from "fs";
 
 export default class Cache {
     private readonly moduleName = "Cache";
+    private openStreams: fs.WriteStream[] = [];
 
     public async init() {
         const isFolderExisting = await this.isCacheFolderPresent();
@@ -79,15 +80,44 @@ export default class Cache {
 
         return new Promise((resolve, reject) => {
             const writeStream = createWriteStream(objectPath);
+            const cache = this;
+
+            this.addOpenStream(writeStream);
 
             writeStream.on("finish", function () {
+                cache.removeOpenStream(writeStream);
                 resolve();
             });
-            writeStream.on("error", reject);
-            stream.on("error", reject);
-
+            writeStream.on("error", function () {
+                cache.removeOpenStream(writeStream);
+                reject();
+            });
+            stream.on("error", function () {
+                cache.removeOpenStream(writeStream);
+                reject();
+            });
             stream.pipe(writeStream);
         });
+    }
+
+    private addOpenStream(stream: fs.WriteStream) {
+        this.openStreams.push(stream);
+    }
+
+    private removeOpenStream(stream: fs.WriteStream) {
+        this.openStreams = this.openStreams.filter((s) => s !== stream);
+    }
+
+    public async closeAllOpenStreams() {
+        console.debug(
+            `${this.moduleName}: Closing all open streams: ${this.openStreams.length}`
+        );
+
+        this.openStreams.forEach((stream) => {
+            stream.destroy();
+        });
+
+        this.openStreams = [];
     }
 
     /**

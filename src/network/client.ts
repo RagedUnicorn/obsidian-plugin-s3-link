@@ -1,4 +1,4 @@
-import { PluginSettings } from "./settings/settings";
+import { PluginSettings } from "../settings/settings";
 import {
     S3Client,
     GetObjectCommand,
@@ -6,14 +6,15 @@ import {
     ListObjectVersionsCommandOutput,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import AwsCredentialProvider from "./aws/awsCredentialProvider";
-import AwsCredential from "./aws/awsCredential";
-import Config from "./config";
-import S3LinkPlugin from "./main";
-import { PluginState } from "./pluginState";
-import { sendNotification } from "./ui/notification";
-import { isPluginReadyState } from "./settings/settings";
+import AwsCredentialProvider from "../aws/awsCredentialProvider";
+import AwsCredential from "../aws/awsCredential";
+import Config from "../config";
+import S3LinkPlugin from "../main";
+import { PluginState } from "../pluginState";
+import { sendNotification } from "../ui/notification";
+import { isPluginReadyState } from "../settings/settings";
 import { Readable } from "stream";
+import DownloadManager from "./downloadManager";
 
 export class Client {
     private readonly moduleName = "Client";
@@ -146,12 +147,19 @@ export class Client {
         return response;
     }
 
-    public async getObject(objectKey: string): Promise<Readable> {
+    public async getObject(
+        objectKey: string,
+        versionId: string
+    ): Promise<Readable> {
         if (!this.s3Client) {
             throw new Error("S3Client not initialized");
         }
 
+        const downloadManager = DownloadManager.getInstance();
+
         try {
+            downloadManager.addNewDownload(objectKey, versionId);
+
             const command = new GetObjectCommand({
                 Bucket: this.settings.bucketName,
                 Key: objectKey,
@@ -159,9 +167,15 @@ export class Client {
             const response = await this.s3Client.send(command);
 
             if (response.Body) {
+                downloadManager.setRunningState(objectKey, versionId);
+
                 const stream = this.browserStreamToReadable(
                     response.Body as ReadableStream
                 );
+
+                stream.on("end", () => {
+                    downloadManager.setCompletedState(objectKey, versionId);
+                });
 
                 return stream;
             } else {
@@ -170,14 +184,13 @@ export class Client {
                 );
             }
         } catch (error) {
+            downloadManager.setErrorState(objectKey, versionId);
             console.error("Error retrieving object from S3", error);
             throw error;
         }
     }
 
-    private browserStreamToReadable(
-        browserStream: ReadableStream
-    ): Readable {
+    private browserStreamToReadable(browserStream: ReadableStream): Readable {
         const reader = browserStream.getReader();
         return new Readable({
             async read() {

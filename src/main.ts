@@ -15,6 +15,7 @@ import ClearCacheGlobalCommand from "./command/clearCacheGlobalCommand";
 import ClearCacheLocalCommand from "./command/clearCacheLocalCommand";
 import ReloadActiveLeafCommand from "./command/reloadActiveLeafCommand";
 import ReloadAllLeafsCommand from "./command/reloadAllLeafsCommand";
+import DownloadManager from "./network/downloadManager";
 
 export default class S3LinkPlugin extends Plugin {
     private readonly moduleName = "Main";
@@ -32,13 +33,18 @@ export default class S3LinkPlugin extends Plugin {
         this.statusBar = new StatusBar(this);
         this.setState(PluginState.LOADING);
 
+        // setup settings
         await this.loadSettings();
         this.addSettingTab(new PluginSettingsTab(this.app, this));
 
         this.cache = await new Cache();
         this.cache.init();
-        this.setupMarkdownPostProcessor(this.cache);
 
+        // cleanup unfinished downloads
+        const downloadManager =
+            DownloadManager.getInstance().cleanUnfinishedDownloads();
+
+        this.setupMarkdownPostProcessor(this.cache);
         this.addPluginCommands(this);
 
         if (isPluginReadyState(this.settings)) {
@@ -50,6 +56,8 @@ export default class S3LinkPlugin extends Plugin {
 
     async onunload() {
         console.info(`${this.moduleName}::onunload - Unloading plugin`);
+
+        this.cache.closeAllOpenStreams();
     }
 
     async loadSettings() {
