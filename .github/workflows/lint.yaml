@@ -2,13 +2,13 @@ name: "Lint Project"
 on: [push]
 
 jobs:
-  lint-eslint:
-    runs-on: ubuntu-latest
-    name: EsLint linting
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v3
-      - name: Install Dependencies
-        run: npm install
-      - name: Run Linting
-        run: npx eslint .
+    lint-eslint:
+        runs-on: ubuntu-latest
+        name: EsLint linting
+        steps:
+            - name: Checkout Repository
+              uses: actions/checkout@v3
+            - name: Install Dependencies
+              run: npm ci
+            - name: Run Linting
+              run: npx eslint .
