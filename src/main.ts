@@ -41,8 +41,7 @@ export default class S3LinkPlugin extends Plugin {
         this.cache.init();
 
         // cleanup unfinished downloads
-        const downloadManager =
-            DownloadManager.getInstance().cleanUnfinishedDownloads();
+        DownloadManager.getInstance().cleanUnfinishedDownloads();
 
         this.setupMarkdownPostProcessor(this.cache);
         this.addPluginCommands(this);
