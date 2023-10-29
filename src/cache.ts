@@ -80,20 +80,19 @@ export default class Cache {
 
         return new Promise((resolve, reject) => {
             const writeStream = createWriteStream(objectPath);
-            const cache = this;
 
             this.addOpenStream(writeStream);
 
             writeStream.on("finish", function () {
-                cache.removeOpenStream(writeStream);
+                this.removeOpenStream(writeStream);
                 resolve();
             });
             writeStream.on("error", function () {
-                cache.removeOpenStream(writeStream);
+                this.removeOpenStream(writeStream);
                 reject();
             });
             stream.on("error", function () {
-                cache.removeOpenStream(writeStream);
+                this.removeOpenStream(writeStream);
                 reject();
             });
             stream.pipe(writeStream);
