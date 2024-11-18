@@ -1,5 +1,6 @@
 import esbuild from "esbuild";
-import process from "process";
+import fs from "fs";
+import path from "path";
 import builtins from "builtin-modules";
 
 const banner = `/*
@@ -8,13 +9,13 @@ if you want to view the source, please visit the github repository of this plugi
 */
 `;
 
-const prod = process.argv[2] === "production";
+const isProd = process.argv[2] === "prod";
 
-const context = await esbuild.context({
+const buildConfig = {
     banner: {
         js: banner,
     },
-    entryPoints: ["src/main.ts"],
+    entryPoints: ["./src/main.ts"],
     bundle: true,
     external: [
         "obsidian",
@@ -32,17 +33,77 @@ const context = await esbuild.context({
         "@lezer/lr",
         ...builtins,
     ],
+    minify: isProd ? false : true,
     format: "cjs",
     target: "es2018",
-    logLevel: "info",
-    sourcemap: prod ? false : "inline",
-    treeShaking: true,
-    outfile: "main.js",
-});
+    logLevel: isProd ? "error" : "debug",
+    sourcemap: isProd ? false : "inline",
+    outfile: "./dist/main.js",
+    plugins: [
+        {
+            name: "move-files-plugin",
+            setup(build) {
+                build.onEnd((result) => {
+                    if (result.errors.length === 0) {
+                        movePluginFiles();
+                    } else {
+                        console.error(
+                            "Build failed with errors:",
+                            result.errors
+                        );
+                    }
+                });
+            },
+        },
+    ],
+};
 
-if (prod) {
-    await context.rebuild();
-    process.exit(0);
-} else {
-    await context.watch();
+// Copy the main.js and manifest.json to the test vault
+function movePluginFiles() {
+    const sourceMain = path.resolve("./dist/main.js");
+    const sourceManifest = path.resolve("./manifest.json");
+    const destinationFolder = path.resolve(
+        "./test/vault/test/.obsidian/plugins/s3-link-test/"
+    );
+
+    if (!fs.existsSync(destinationFolder)) {
+        fs.mkdirSync(destinationFolder, { recursive: true });
+    }
+
+    fs.copyFile(sourceMain, path.join(destinationFolder, "main.js"), (err) => {
+        if (err) {
+            console.error("Error moving main.js:", err);
+        } else {
+            console.log("main.js moved successfully");
+        }
+    });
+
+    fs.copyFile(
+        sourceManifest,
+        path.join(destinationFolder, "manifest.json"),
+        (err) => {
+            if (err) {
+                console.error("Error moving manifest.json:", err);
+            } else {
+                console.log("manifest.json moved successfully");
+            }
+        }
+    );
 }
+
+async function build() {
+    try {
+        const ctx = await esbuild.context(buildConfig);
+
+        // Watch for changes
+        await ctx.watch();
+        console.log("Watching for changes...");
+
+        movePluginFiles();
+    } catch (error) {
+        console.error("Build failed:", error);
+        process.exit(1);
+    }
+}
+
+build();

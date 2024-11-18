@@ -1,155 +1,96 @@
 import { Plugin } from "obsidian";
-import Config from "./config";
-import Cache from "./cache";
-import { S3PostProcessor } from "./s3PostProcessor";
-import { PluginSettingsTab } from "./settings/settingsTab";
-import {
-    PluginSettings,
-    DEFAULT_SETTINGS,
-    isPluginReadyState,
-} from "./settings/settings";
-import { PluginState } from "./pluginState";
-import { StatusBar } from "./ui/statusBar";
-import { sendNotification } from "./ui/notification";
-import ClearCacheGlobalCommand from "./command/clearCacheGlobalCommand";
-import ClearCacheLocalCommand from "./command/clearCacheLocalCommand";
-import ReloadActiveLeafCommand from "./command/reloadActiveLeafCommand";
-import ReloadAllLeafsCommand from "./command/reloadAllLeafsCommand";
-import DownloadManager from "./network/downloadManager";
+import { ViewPlugin } from "@codemirror/view";
+import { debounce } from "lodash"; // Import lodash debounce function for throttling
 
-export default class S3LinkPlugin extends Plugin {
-    private readonly moduleName = "Main";
-    cache: Cache;
-    settings: PluginSettings;
-    pluginState: PluginState;
-    statusBar: StatusBar;
-    s3PostProcessor: S3PostProcessor;
-
-    async onload() {
-        console.info(
-            `${this.moduleName}::onload - Loading plugin - ${Config.PLUGIN_NAME}`
-        );
-
-        this.statusBar = new StatusBar(this);
-        this.setState(PluginState.LOADING);
-
-        // setup settings
-        await this.loadSettings();
-        this.addSettingTab(new PluginSettingsTab(this.app, this));
-
-        this.cache = await new Cache();
-        this.cache.init();
-
-        // cleanup unfinished downloads
-        DownloadManager.getInstance().cleanUnfinishedDownloads();
-
-        this.setupMarkdownPostProcessor(this.cache);
-        this.addPluginCommands(this);
-
-        if (isPluginReadyState(this.settings)) {
-            this.setState(PluginState.READY);
-        } else {
-            this.setState(PluginState.CONFIG);
-        }
+export default class SimpleImagePlugin extends Plugin {
+    // TODO name
+    onload() {
+        this.registerEditorExtension(this.createCodeMirrorExtension(this.app));
     }
 
-    async onunload() {
-        console.info(`${this.moduleName}::onunload - Unloading plugin`);
+    createCodeMirrorExtension(app) {
+        return ViewPlugin.fromClass(
+            class {
+                app;
+                mutationObserver;
+                throttledUpdateImages;
 
-        this.cache.closeAllOpenStreams();
-    }
+                constructor(view) {
+                    console.log("Loaded obsidian-plugin-s3-link");
+                    this.app = app;
+                    this.throttledUpdateImages = debounce(
+                        this.updateImages,
+                        100
+                    ); // Throttle the updates
 
-    async loadSettings() {
-        console.debug(
-            `${this.moduleName}::loadSettings - Loading settings for ${Config.PLUGIN_NAME}`
-        );
+                    this.updateImages(view); // Update images when the plugin is first loaded
 
-        this.settings = Object.assign(
-            {},
-            DEFAULT_SETTINGS,
-            await this.loadData()
-        );
-    }
+                    // Set up a MutationObserver to monitor when new images are added to the DOM
+                    this.mutationObserver = new MutationObserver(
+                        (mutations) => {
+                            mutations.forEach((mutation) => {
+                                if (mutation.addedNodes.length) {
+                                    this.throttledUpdateImages(view);
+                                }
+                            });
+                        }
+                    );
 
-    async saveSettings() {
-        console.debug(
-            `${this.moduleName}::saveSettings - Saving settings for ${Config.PLUGIN_NAME}`
-        );
+                    // Start observing the view's DOM for changes
+                    this.mutationObserver.observe(view.dom, {
+                        childList: true,
+                        subtree: true,
+                    });
+                }
 
-        await this.saveData(this.settings);
+                update(update) {
+                    this.throttledUpdateImages(update.view);
+                    // Trigger image update when document changes, viewport changes, or focus changes
+                    if (
+                        update.docChanged ||
+                        update.viewportChanged ||
+                        update.focusChanged
+                    ) {
+                        this.throttledUpdateImages(update.view);
+                    }
+                }
 
-        if (isPluginReadyState(this.settings)) {
-            this.setState(PluginState.READY);
-        } else {
-            this.setState(PluginState.CONFIG);
-        }
+                updateImages(view) {
+                    // Find all image elements with s3-sign links rendered by Obsidian
+                    const imgElements = view.dom.querySelectorAll(
+                        "img[src^='s3-sign:']"
+                    );
 
-        this.s3PostProcessor.onSettingsChanged(this.settings);
-    }
+                    imgElements.forEach((img) => {
+                        console.log("Updating image", img);
+                        const s3Link = img.getAttribute("src");
 
-    private addPluginCommands(plugin: S3LinkPlugin) {
-        new ClearCacheGlobalCommand().addCommand(plugin);
-        new ClearCacheLocalCommand().addCommand(plugin);
-        new ReloadActiveLeafCommand().addCommand(plugin);
-        new ReloadAllLeafsCommand().addCommand(plugin);
-    }
+                        // If the image has already been processed, skip it
 
-    /**
-     *
-     * @param cache
-     */
-    private setupMarkdownPostProcessor(cache: Cache) {
-        console.debug(
-            `${this.moduleName}::setupMarkdownPostProcessor - Setting up markdown post processor`
-        );
+                        const localImagePath = this.resolveImagePath(
+                            "assets/s3_image_test_jpg_1.jpg"
+                        );
 
-        this.s3PostProcessor = new S3PostProcessor(this, cache, this.settings);
+                        // Replace the src attribute with the resolved path
+                        img.setAttribute("src", localImagePath);
+                        console.log("Resolved path", localImagePath);
+                    });
+                }
 
-        this.registerMarkdownPostProcessor(
-            this.s3PostProcessor.onMarkdownPostProcessor.bind(
-                this.s3PostProcessor
-            )
+                // Helper method to resolve the image path using Obsidian's internal API
+                resolveImagePath(path) {
+                    return this.app.vault.adapter.getResourcePath(path);
+                }
+
+                destroy() {
+                    // Disconnect the MutationObserver when the plugin is destroyed
+                    this.mutationObserver.disconnect();
+                }
+            }
         );
     }
 
-    public setState(state: PluginState, msg = ""): void {
-        if (!this.statusBar) {
-            throw new Error("Status bar not initialized");
-        }
-
-        switch (state) {
-            case PluginState.LOADING:
-                this.pluginState = PluginState.LOADING;
-                this.statusBar.setStatusBarText(
-                    msg || "Loading",
-                    "lucide-loader"
-                );
-
-                break;
-            case PluginState.READY:
-                this.pluginState = PluginState.READY;
-                this.statusBar.setStatusBarText(msg || "Ready", "lucide-check");
-
-                break;
-            case PluginState.CONFIG:
-                this.pluginState = PluginState.CONFIG;
-                this.statusBar.setStatusBarText(
-                    msg || "Missing Configuration",
-                    "lucide-settings"
-                );
-                sendNotification(
-                    "Plugin is missing configuration - Please check settings"
-                );
-
-                break;
-            case PluginState.ERROR:
-                this.pluginState = PluginState.ERROR;
-                this.statusBar.setStatusBarText(
-                    msg || "Error State",
-                    "lucide-x-circle"
-                );
-
-                break;
-        }
+    onunload() {
+        // Clean up when the plugin is unloaded
     }
 }
