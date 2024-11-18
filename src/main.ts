@@ -1,96 +1,96 @@
 import { Plugin } from "obsidian";
-import { ViewPlugin } from "@codemirror/view";
-import { debounce } from "lodash"; // Import lodash debounce function for throttling
+import Config from "./config";
+import { PluginSettings, DEFAULT_SETTINGS } from "./settings/settings";
+import { CodeMirrorExtension } from "./codeMirrorExtension";
+import { MarkdownPostProcessor } from "./markdownPostProcessor";
 
-export default class SimpleImagePlugin extends Plugin {
-    // TODO name
-    onload() {
-        this.registerEditorExtension(this.createCodeMirrorExtension(this.app));
+export default class S3LinkPlugin extends Plugin {
+    private readonly moduleName = "S3LinkPlugin";
+    pluginSettings: PluginSettings;
+    markdownPostProcessor: MarkdownPostProcessor;
+    codeMirrorExtension: CodeMirrorExtension;
+
+    /**
+     * Entrypoint for plugin initialization.
+     */
+    async onload() {
+        try {
+            await this.loadSettings();
+            this.registerEditorTools();
+        } catch (error) {
+            console.error(
+                `${this.moduleName}::onload - Error during initialization`,
+                error
+            );
+        }
     }
 
-    createCodeMirrorExtension(app) {
-        return ViewPlugin.fromClass(
-            class {
-                app;
-                mutationObserver;
-                throttledUpdateImages;
+    /**
+     * Load obsidian settings for data.json or fallback to default settings.
+     */
+    async loadSettings() {
+        console.debug(
+            `${this.moduleName}::loadSettings - Loading settings for ${Config.PLUGIN_NAME}`
+        );
 
-                constructor(view) {
-                    console.log("Loaded obsidian-plugin-s3-link");
-                    this.app = app;
-                    this.throttledUpdateImages = debounce(
-                        this.updateImages,
-                        100
-                    ); // Throttle the updates
-
-                    this.updateImages(view); // Update images when the plugin is first loaded
-
-                    // Set up a MutationObserver to monitor when new images are added to the DOM
-                    this.mutationObserver = new MutationObserver(
-                        (mutations) => {
-                            mutations.forEach((mutation) => {
-                                if (mutation.addedNodes.length) {
-                                    this.throttledUpdateImages(view);
-                                }
-                            });
-                        }
-                    );
-
-                    // Start observing the view's DOM for changes
-                    this.mutationObserver.observe(view.dom, {
-                        childList: true,
-                        subtree: true,
-                    });
-                }
-
-                update(update) {
-                    this.throttledUpdateImages(update.view);
-                    // Trigger image update when document changes, viewport changes, or focus changes
-                    if (
-                        update.docChanged ||
-                        update.viewportChanged ||
-                        update.focusChanged
-                    ) {
-                        this.throttledUpdateImages(update.view);
-                    }
-                }
-
-                updateImages(view) {
-                    // Find all image elements with s3-sign links rendered by Obsidian
-                    const imgElements = view.dom.querySelectorAll(
-                        "img[src^='s3-sign:']"
-                    );
-
-                    imgElements.forEach((img) => {
-                        console.log("Updating image", img);
-                        const s3Link = img.getAttribute("src");
-
-                        // If the image has already been processed, skip it
-
-                        const localImagePath = this.resolveImagePath(
-                            "assets/s3_image_test_jpg_1.jpg"
-                        );
-
-                        // Replace the src attribute with the resolved path
-                        img.setAttribute("src", localImagePath);
-                        console.log("Resolved path", localImagePath);
-                    });
-                }
-
-                // Helper method to resolve the image path using Obsidian's internal API
-                resolveImagePath(path) {
-                    return this.app.vault.adapter.getResourcePath(path);
-                }
-
-                destroy() {
-                    // Disconnect the MutationObserver when the plugin is destroyed
-                    this.mutationObserver.disconnect();
-                }
-            }
+        this.pluginSettings = Object.assign(
+            {},
+            DEFAULT_SETTINGS,
+            await this.loadData()
         );
     }
 
-    onunload() {
-        // Clean up when the plugin is unloaded
+    /**
+     * Register the editor tools for the plugin. This includes the CodeMirror extension and the MarkdownPostProcessor.
+     */
+    private registerEditorTools() {
+        console.debug(
+            `${this.moduleName}::registerEditorTools - Registering editor tools`
+        );
+
+        this.registerPluginCodeMirrorExtension();
+        this.registerPluginMarkdownPostProcessor();
+
+        console.debug(
+            `${this.moduleName}::registerEditorTools - Editor tools registered`
+        );
+    }
+
+    /**
+     * Register the MarkdownPostProcessor for the plugin.
+     */
+    private registerPluginMarkdownPostProcessor() {
+        console.info(
+            `${this.moduleName}::registerPluginMarkdownPostProcessor - Registering MarkdownPostProcessor`
+        );
+
+        this.markdownPostProcessor = new MarkdownPostProcessor(this);
+        this.registerMarkdownPostProcessor(
+            this.markdownPostProcessor.onMarkdownPostProcessor.bind(
+                this.markdownPostProcessor
+            )
+        );
+
+        console.info(
+            `${this.moduleName}::registerPluginMarkdownPostProcessor - MarkdownPostProcessor registered`
+        );
+    }
+
+    /**
+     * Register the CodeMirror extension for the plugin.
+     */
+    private registerPluginCodeMirrorExtension() {
+        console.info(
+            `${this.moduleName}::registerPluginCodeMirrorExtension - Registering CodeMirrorExtension`
+        );
+
+        this.codeMirrorExtension = new CodeMirrorExtension(this);
+        this.registerEditorExtension(
+            this.codeMirrorExtension.createCodeMirrorExtension(this.app)
+        );
+
+        console.info(
+            `${this.moduleName}::registerPluginCodeMirrorExtension - CodeMirrorExtension registered`
+        );
     }
 }
