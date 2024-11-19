@@ -6,6 +6,7 @@ export default abstract class Config {
     static readonly S3_LINK_EXPIRATION_TIME_SECONDS = 60 * 60; // 1 hour
     static readonly S3_SIGNED_LINK_PREFIX = "s3-sign";
     static readonly S3_SIGNED_LINK_EXPIRATION_TIME_SECONDS = 60 * 60 * 24 * 7; // 7 days
+    static readonly S3_LINK_PLUGIN_DATA_ATTRIBUTE = "data-object-key";
     static readonly AWS_CREDENTIALS_FILE_PATH = ".aws\\credentials";
     static readonly AWS_PROFILE_NAME_NONE = "None";
 }

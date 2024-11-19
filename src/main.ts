@@ -1,8 +1,8 @@
 import { Plugin } from "obsidian";
 import Config from "./config";
 import { PluginSettings, DEFAULT_SETTINGS } from "./settings/settings";
-import { CodeMirrorExtension } from "./codeMirrorExtension";
-import { MarkdownPostProcessor } from "./markdownPostProcessor";
+import { CodeMirrorExtension } from "./editor/codeMirrorExtension";
+import { MarkdownPostProcessor } from "./editor/markdownPostProcessor";
 
 export default class S3LinkPlugin extends Plugin {
     private readonly moduleName = "S3LinkPlugin";

@@ -6,6 +6,10 @@ import Config from "../config";
 import path from "path";
 
 /**
+ * TODO should cache credentials file content on startup and update when changes in settings are detected
+ */
+
+/**
  * AWS AwsCredentialProvider
  *
  * A helper for retrieving profiles and credentials from the AWS credentials file in the users home directory
