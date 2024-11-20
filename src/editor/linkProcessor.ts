@@ -7,20 +7,13 @@ import LocalStorageSignedLinkCache from "../cache/localStorageSignedLinkCache";
 
 export class LinkProcessor {
     private readonly moduleName = "LinkProcessor";
-    localStorageSignedLinkCache: LocalStorageSignedLinkCache;
-    pluginSettings: PluginSettings;
-    awsS3Client: AwsS3Client;
 
     constructor(
-        localStorageSignedLinkCache: LocalStorageSignedLinkCache,
-        pluginSettings: PluginSettings,
-        awsS3Client: AwsS3Client
+        private localStorageSignedLinkCache: LocalStorageSignedLinkCache,
+        private pluginSettings: PluginSettings,
+        private awsS3Client: AwsS3Client
     ) {
         console.info(`${this.moduleName}::constructor - LinkProcessor created`);
-
-        this.localStorageSignedLinkCache = localStorageSignedLinkCache;
-        this.pluginSettings = pluginSettings;
-        this.awsS3Client = awsS3Client;
     }
 
     public async processLinks(resolvedS3ImageLinks: {

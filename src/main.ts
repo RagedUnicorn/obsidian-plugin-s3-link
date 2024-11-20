@@ -4,6 +4,7 @@ import { PluginSettings, DEFAULT_SETTINGS } from "./settings/settings";
 import { AwsS3Client } from "./network/awsS3Client";
 import { CodeMirrorExtension } from "./editor/codeMirrorExtension";
 import { MarkdownPostProcessor } from "./editor/markdownPostProcessor";
+import FileCache from "./cache/fileCache";
 import LocalStorageSignedLinkCache from "./cache/localStorageSignedLinkCache";
 
 /**
@@ -15,6 +16,7 @@ export default class S3LinkPlugin extends Plugin {
     awsS3Client: AwsS3Client;
     markdownPostProcessor: MarkdownPostProcessor;
     codeMirrorExtension: CodeMirrorExtension;
+    fileCache: FileCache;
     localStorageSignedLinkCache: LocalStorageSignedLinkCache;
 
     /**
@@ -23,6 +25,7 @@ export default class S3LinkPlugin extends Plugin {
     async onload() {
         try {
             await this.loadSettings();
+            this.setupFileCache();
             this.setupLocalStorageCache();
             this.setupAwsS3Client();
             this.registerEditorTools();
@@ -55,6 +58,22 @@ export default class S3LinkPlugin extends Plugin {
     private async setupAwsS3Client() {
         this.awsS3Client = new AwsS3Client(this.pluginSettings);
         await this.awsS3Client.init();
+    }
+
+    /**
+     * Setup local file cache for the plugin.
+     */
+    private setupFileCache() {
+        console.info(
+            `${this.moduleName}::setupFileCache - Setting up file cache`
+        );
+
+        this.fileCache = new FileCache(this.app);
+        this.fileCache.init();
+
+        console.info(
+            `${this.moduleName}::setupFileCache - File cache setup complete`
+        );
     }
 
     /**

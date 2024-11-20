@@ -10,6 +10,7 @@ export default abstract class Config {
     static readonly AWS_CREDENTIALS_FILE_PATH = ".aws\\credentials";
     static readonly AWS_PROFILE_NAME_NONE = "None";
 
+    static readonly CACHE_FOLDER = "s3_link_cache";
     static readonly S3_SIGNED_LINKS_CACHE_PATH = "s3SignedLinks";
     static readonly S3_FILE_LINKS_CACHE_PATH = "s3FileLinks";
 }
