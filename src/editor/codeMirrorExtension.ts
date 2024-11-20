@@ -5,13 +5,15 @@ import {
     EditorView,
 } from "@codemirror/view";
 import { App } from "obsidian";
-import { debounce } from "lodash";
+import { debounce } from "obsidian";
 import S3LinkPlugin from "../main";
+
+import { emitter } from "../event/event";
 
 import { updateSignedLinkReferences } from "./htmlProcessor";
 import { isEditorModeSource } from "../util/editorHelper";
 
-import { LinkProcessor } from "../linkProcessor";
+import { LinkProcessor } from "../editor/linkProcessor";
 import ImageResolver from "../resolver/imageResolver";
 import VideoResolver from "../resolver/videoResolver";
 
@@ -22,9 +24,15 @@ export class CodeMirrorExtension {
     private videoResolver: VideoResolver;
 
     constructor(plugin: S3LinkPlugin) {
-        this.linkProcessor = new LinkProcessor(plugin.pluginSettings);
+        this.linkProcessor = new LinkProcessor(
+            plugin.localStorageSignedLinkCache,
+            plugin.pluginSettings,
+            plugin.awsS3Client
+        );
         this.imageResolver = new ImageResolver();
         this.videoResolver = new VideoResolver();
+
+        this.setupEventListeners();
 
         console.info(
             `${this.moduleName}::constructor - CodeMirrorExtension created`
@@ -105,9 +113,30 @@ export class CodeMirrorExtension {
     }
 
     /**
+     * Set up event listeners to receive processed links. Processed links are links that
+     * where resolved to their respective signed s3 links.
+     *
+     * TODO add listener for downloaded files (none sign links)
+     */
+    private setupEventListeners() {
+        emitter.on("signLinkProcessed", ({ elements, s3SignedLink }) => {
+            console.debug(
+                `${this.moduleName} - Received Event signLinkProcessed`,
+                elements,
+                s3SignedLink
+            );
+            updateSignedLinkReferences(elements, s3SignedLink);
+        });
+    }
+
+    /**
      * Throttle the update view function to prevent multiple calls in quick succession.
      */
-    private throttleUpdateView = debounce(this.updateView, 100);
+    private throttleUpdateView = debounce(
+        this.updateView.bind(this),
+        100,
+        false
+    );
 
     /**
      * Update the view with the processed content.
@@ -137,16 +166,7 @@ export class CodeMirrorExtension {
             resolvedS3ImageLinks
         );
 
-        let processedImageLinks = await this.linkProcessor.processLinks(
-            resolvedS3ImageLinks
-        );
-
-        console.debug(
-            `${this.moduleName}::updateView - Processed S3 image links`,
-            processedImageLinks
-        );
-
-        updateSignedLinkReferences(processedImageLinks);
+        this.linkProcessor.processLinks(resolvedS3ImageLinks);
     }
 
     /**
@@ -163,16 +183,7 @@ export class CodeMirrorExtension {
             resolvedS3VideoLinks
         );
 
-        let processedVideoLinks = await this.linkProcessor.processLinks(
-            resolvedS3VideoLinks
-        );
-
-        console.debug(
-            `${this.moduleName}::updateView - Processed S3 video links`,
-            processedVideoLinks
-        );
-
-        updateSignedLinkReferences(processedVideoLinks);
+        this.linkProcessor.processLinks(resolvedS3VideoLinks);
     }
 
     onunload() {

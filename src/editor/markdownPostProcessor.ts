@@ -4,7 +4,9 @@ import S3LinkPlugin from "../main";
 import { updateSignedLinkReferences } from "./htmlProcessor";
 import { isEditorModePreview } from "../util/editorHelper";
 
-import { LinkProcessor } from "../linkProcessor";
+import { emitter } from "../event/event";
+
+import { LinkProcessor } from "../editor/linkProcessor";
 import ImageResolver from "../resolver/imageResolver";
 import VideoResolver from "../resolver/videoResolver";
 
@@ -17,7 +19,11 @@ export class MarkdownPostProcessor {
 
     constructor(plugin: S3LinkPlugin) {
         this.app = plugin.app;
-        this.linkProcessor = new LinkProcessor(plugin.pluginSettings);
+        this.linkProcessor = new LinkProcessor(
+            plugin.localStorageSignedLinkCache,
+            plugin.pluginSettings,
+            plugin.awsS3Client
+        );
         this.imageResolver = new ImageResolver();
         this.videoResolver = new VideoResolver();
 
@@ -54,6 +60,23 @@ export class MarkdownPostProcessor {
     }
 
     /**
+     * Set up event listeners to receive processed links. Processed links are links that
+     * where resolved to their respective signed s3 links.
+     *
+     * TODO add listener for downloaded files (none sign links)
+     */
+    private setupEventListeners() {
+        emitter.on("signLinkProcessed", ({ elements, s3SignedLink }) => {
+            console.debug(
+                `${this.moduleName} - Signed Link processed:`,
+                elements,
+                s3SignedLink
+            );
+            updateSignedLinkReferences(elements, s3SignedLink);
+        });
+    }
+
+    /**
      * Process and update image links in the view.
      *
      * @param update
@@ -66,16 +89,7 @@ export class MarkdownPostProcessor {
             resolvedS3ImageLinks
         );
 
-        let processedImageLinks = await this.linkProcessor.processLinks(
-            resolvedS3ImageLinks
-        );
-
-        console.debug(
-            `${this.moduleName}::processImageLinks - Processed S3 image links`,
-            processedImageLinks
-        );
-
-        updateSignedLinkReferences(processedImageLinks);
+        this.linkProcessor.processLinks(resolvedS3ImageLinks);
     }
 
     /**
@@ -91,15 +105,6 @@ export class MarkdownPostProcessor {
             resolvedS3VideoLinks
         );
 
-        let processedVideoLinks = await this.linkProcessor.processLinks(
-            resolvedS3VideoLinks
-        );
-
-        console.debug(
-            `${this.moduleName}::processVideoLinks - Processed S3 video links`,
-            processedVideoLinks
-        );
-
-        updateSignedLinkReferences(processedVideoLinks);
+        this.linkProcessor.processLinks(resolvedS3VideoLinks);
     }
 }

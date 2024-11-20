@@ -9,4 +9,7 @@ export default abstract class Config {
     static readonly S3_LINK_PLUGIN_DATA_ATTRIBUTE = "data-object-key";
     static readonly AWS_CREDENTIALS_FILE_PATH = ".aws\\credentials";
     static readonly AWS_PROFILE_NAME_NONE = "None";
+
+    static readonly S3_SIGNED_LINKS_CACHE_PATH = "s3SignedLinks";
+    static readonly S3_FILE_LINKS_CACHE_PATH = "s3FileLinks";
 }

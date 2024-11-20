@@ -1,14 +1,21 @@
 import { Plugin } from "obsidian";
 import Config from "./config";
 import { PluginSettings, DEFAULT_SETTINGS } from "./settings/settings";
+import { AwsS3Client } from "./network/awsS3Client";
 import { CodeMirrorExtension } from "./editor/codeMirrorExtension";
 import { MarkdownPostProcessor } from "./editor/markdownPostProcessor";
+import LocalStorageSignedLinkCache from "./cache/localStorageSignedLinkCache";
 
+/**
+ * Entrypoint calss for the S3LinkPlugin.
+ */
 export default class S3LinkPlugin extends Plugin {
     private readonly moduleName = "S3LinkPlugin";
     pluginSettings: PluginSettings;
+    awsS3Client: AwsS3Client;
     markdownPostProcessor: MarkdownPostProcessor;
     codeMirrorExtension: CodeMirrorExtension;
+    localStorageSignedLinkCache: LocalStorageSignedLinkCache;
 
     /**
      * Entrypoint for plugin initialization.
@@ -16,6 +23,8 @@ export default class S3LinkPlugin extends Plugin {
     async onload() {
         try {
             await this.loadSettings();
+            this.setupLocalStorageCache();
+            this.setupAwsS3Client();
             this.registerEditorTools();
         } catch (error) {
             console.error(
@@ -37,6 +46,32 @@ export default class S3LinkPlugin extends Plugin {
             {},
             DEFAULT_SETTINGS,
             await this.loadData()
+        );
+    }
+
+    /**
+     * Setup the AWS S3 client for the plugin.
+     */
+    private async setupAwsS3Client() {
+        this.awsS3Client = new AwsS3Client(this.pluginSettings);
+        await this.awsS3Client.init();
+    }
+
+    /**
+     * Setup local storage cache for signed/file links.
+     */
+    private setupLocalStorageCache() {
+        console.info(
+            `${this.moduleName}::setupLocalStorageCache - Setting up local storage cache`
+        );
+
+        this.localStorageSignedLinkCache = new LocalStorageSignedLinkCache();
+        this.localStorageSignedLinkCache.init();
+
+        // TODO do the same for the file cache
+
+        console.info(
+            `${this.moduleName}::setupLocalStorageCache - Local storage cache setup complete`
         );
     }
 
