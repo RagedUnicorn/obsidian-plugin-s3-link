@@ -79,15 +79,16 @@ export default class HtmlProcessor {
      * @param htmlElement - The HTML element to update.
      * @param s3FileLink - The S3 file link object.
      */
-    private updateElementFileLink(
+    private async updateElementFileLink(
         htmlElement: HTMLElement,
         s3FileLink: S3FileLink
     ) {
+        let source = await this.fileCache.getFileFromCacheFolder(s3FileLink);
+
         if (htmlElement instanceof HTMLImageElement) {
-            this.updateImageElementTest(htmlElement, s3FileLink);
+            this.updateImageElement(htmlElement, source);
         } else if (htmlElement instanceof HTMLVideoElement) {
-            // TODO
-            // updateVideoElement(htmlElement, s3FileLink);
+            this.updateVideoElement(htmlElement, source);
         } else {
             throw new Error(`Unsupported HTML element: ${htmlElement.tagName}`);
         }
@@ -96,21 +97,6 @@ export default class HtmlProcessor {
         htmlElement.setAttribute(
             Config.S3_LINK_PLUGIN_DATA_ATTRIBUTE,
             `${Config.S3_SIGNED_LINK_PREFIX}/${s3FileLink.objectKey}`
-        );
-    }
-
-    /**
-     * Update the signed link reference for an HTMLImageElement.
-     *
-     * @param imageElement - The HTMLImageElement to update.
-     * @param s3SignedLink - The S3 signed link object.
-     */
-    private async updateImageElementTest(
-        imageElement: HTMLImageElement,
-        s3FileLink: S3FileLink
-    ) {
-        imageElement.src = await this.fileCache.getFileFromCacheFolder(
-            s3FileLink
         );
     }
 
@@ -154,9 +140,9 @@ export default class HtmlProcessor {
         s3SignedLink: S3SignedLink
     ) {
         if (htmlElement instanceof HTMLImageElement) {
-            this.updateImageElement(htmlElement, s3SignedLink);
+            this.updateImageElement(htmlElement, s3SignedLink.signedUrl);
         } else if (htmlElement instanceof HTMLVideoElement) {
-            this.updateVideoElement(htmlElement, s3SignedLink);
+            this.updateVideoElement(htmlElement, s3SignedLink.signedUrl);
         } else {
             throw new Error(`Unsupported HTML element: ${htmlElement.tagName}`);
         }
@@ -172,26 +158,23 @@ export default class HtmlProcessor {
      * Update the signed link reference for an HTMLImageElement.
      *
      * @param imageElement - The HTMLImageElement to update.
-     * @param s3SignedLink - The S3 signed link object.
+     * @param source - Resource path to the file or an S3 signed link.
      */
-    private updateImageElement(
+    private async updateImageElement(
         imageElement: HTMLImageElement,
-        s3Link: S3SignedLink
+        source: string
     ) {
-        imageElement.src = s3Link.signedUrl;
+        imageElement.src = source;
     }
 
     /**
      * Update the signed link reference for an HTMLVideoElement.
      *
      * @param videoElement - The HTMLVideoElement to update.
-     * @param s3SignedLink - The S3 signed link object.
+     * @param source - Resource path to the file or an S3 signed link.
      */
-    private updateVideoElement(
-        videoElement: HTMLVideoElement,
-        s3SignedLink: S3SignedLink
-    ) {
+    private updateVideoElement(videoElement: HTMLVideoElement, source: string) {
         videoElement.autoplay = false; // Ensure autoplay is disabled for videos
-        videoElement.src = s3SignedLink.signedUrl;
+        videoElement.src = source;
     }
 }

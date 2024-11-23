@@ -1,11 +1,11 @@
 ---
-identifier: test-video-remote
+identifier: test-video-obsidian
 tags:
-    - test
-    - video
+  - test
+  - video
 ---
 
-> This is for obsidian testing. The plugin should ignore normal video embedding and not touch the videos at all
+> This is for the S3 link plugin testing. The plugin should recognize the links, generate a signed S3 link and display the video
 
 #### Video
 
