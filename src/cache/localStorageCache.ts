@@ -3,8 +3,8 @@ import S3SignedLink from "../model/s3SignedLink";
 import S3FileLink from "../model/s3FileLink";
 
 export default class LocalStorageCache {
-    protected readonly moduleName: string = "LocalStorageCache";
-    private readonly cachePath: string;
+    protected readonly moduleName!: string;
+    protected readonly cachePath: string;
 
     constructor(cachePath: string) {
         this.cachePath = cachePath;
@@ -45,7 +45,7 @@ export default class LocalStorageCache {
     /**
      * Clears all items from localStorage that are related to the plugin.
      */
-    protected clearLocalStorage(cachePath: string = "") {
+    protected clearLocalStorage(cachePath = "") {
         console.debug(
             `${this.moduleName}::clearLocalStorage - Clearing localStorage`
         );
@@ -70,6 +70,30 @@ export default class LocalStorageCache {
 
                 console.debug(
                     `${this.moduleName}: Removed item with key: ${key} from localStorage`
+                );
+            }
+        });
+    }
+
+    /**
+     * Removes an item from localStorage.
+     *
+     * @param cachePath The cache path to remove the item from
+     * @param objectKey The object key to remove from the cache
+     */
+    protected removeItemFromLocalStorage(cachePath: string, objectKey: string) {
+        console.debug(
+            `${this.moduleName}::removeItemFromLocalStorage - Removing ${objectKey} from localStorage`
+        );
+
+        const localStorageItems = Object.keys(window.localStorage);
+
+        localStorageItems.forEach((key) => {
+            if (key === `${Config.PLUGIN_NAME}/${cachePath}/${objectKey}`) {
+                localStorage.removeItem(key);
+
+                console.debug(
+                    `${this.moduleName}::removeItemFromLocalStorage - Removed item with key: ${key}`
                 );
             }
         });

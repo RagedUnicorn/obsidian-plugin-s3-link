@@ -1,11 +1,6 @@
 import { App } from "obsidian";
 import S3LinkPlugin from "../main";
-
-import { updateSignedLinkReferences } from "./htmlProcessor";
 import { isEditorModePreview } from "../util/editorHelper";
-
-import { emitter } from "../event/event";
-
 import { LinkProcessor } from "../editor/linkProcessor";
 import ImageResolver from "../resolver/imageResolver";
 import VideoResolver from "../resolver/videoResolver";
@@ -13,6 +8,7 @@ import VideoResolver from "../resolver/videoResolver";
 export class MarkdownPostProcessor {
     private readonly moduleName = "S3PostProcessor";
     private app: App;
+    private plugin: S3LinkPlugin;
     private linkProcessor: LinkProcessor;
     private imageResolver: ImageResolver;
     private videoResolver: VideoResolver;
@@ -20,7 +16,9 @@ export class MarkdownPostProcessor {
     constructor(plugin: S3LinkPlugin) {
         this.app = plugin.app;
         this.linkProcessor = new LinkProcessor(
+            plugin.fileCache,
             plugin.localStorageSignedLinkCache,
+            plugin.localStorageFileLinkCache,
             plugin.pluginSettings,
             plugin.awsS3Client
         );
@@ -57,23 +55,6 @@ export class MarkdownPostProcessor {
 
         this.processImageLinks(element);
         this.processVideoLinks(element);
-    }
-
-    /**
-     * Set up event listeners to receive processed links. Processed links are links that
-     * where resolved to their respective signed s3 links.
-     *
-     * TODO add listener for downloaded files (none sign links)
-     */
-    private setupEventListeners() {
-        emitter.on("signLinkProcessed", ({ elements, s3SignedLink }) => {
-            console.debug(
-                `${this.moduleName} - Signed Link processed:`,
-                elements,
-                s3SignedLink
-            );
-            updateSignedLinkReferences(elements, s3SignedLink);
-        });
     }
 
     /**

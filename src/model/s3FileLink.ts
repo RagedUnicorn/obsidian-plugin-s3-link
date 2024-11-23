@@ -1,7 +1,8 @@
 /**
- * S3Link
+ * S3FileLink
  *
- * Represents all relevant data for an S3 link object
+ * Represents all relevant data for a file link to an S3 object
+ *
  */
 export default class S3FileLink {
     objectKey: string;

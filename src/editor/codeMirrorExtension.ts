@@ -9,10 +9,7 @@ import { debounce } from "obsidian";
 import S3LinkPlugin from "../main";
 
 import { emitter } from "../event/event";
-
-import { updateSignedLinkReferences } from "./htmlProcessor";
 import { isEditorModeSource } from "../util/editorHelper";
-
 import { LinkProcessor } from "../editor/linkProcessor";
 import ImageResolver from "../resolver/imageResolver";
 import VideoResolver from "../resolver/videoResolver";
@@ -23,16 +20,16 @@ export class CodeMirrorExtension {
     private imageResolver: ImageResolver;
     private videoResolver: VideoResolver;
 
-    constructor(plugin: S3LinkPlugin) {
+    constructor(private plugin: S3LinkPlugin) {
         this.linkProcessor = new LinkProcessor(
+            plugin.fileCache,
             plugin.localStorageSignedLinkCache,
+            plugin.localStorageFileLinkCache,
             plugin.pluginSettings,
             plugin.awsS3Client
         );
         this.imageResolver = new ImageResolver();
         this.videoResolver = new VideoResolver();
-
-        this.setupEventListeners();
 
         console.info(
             `${this.moduleName}::constructor - CodeMirrorExtension created`
@@ -77,11 +74,11 @@ export class CodeMirrorExtension {
                 });
             });
 
-            // Start observing the view's DOM for changes
             mutationObserver.observe(view.dom, {
                 childList: true,
                 subtree: true,
             });
+            console.log(view);
 
             return {
                 update(updatedView: ViewUpdate) {
@@ -109,23 +106,6 @@ export class CodeMirrorExtension {
                     mutationObserver.disconnect();
                 },
             };
-        });
-    }
-
-    /**
-     * Set up event listeners to receive processed links. Processed links are links that
-     * where resolved to their respective signed s3 links.
-     *
-     * TODO add listener for downloaded files (none sign links)
-     */
-    private setupEventListeners() {
-        emitter.on("signLinkProcessed", ({ elements, s3SignedLink }) => {
-            console.debug(
-                `${this.moduleName} - Received Event signLinkProcessed`,
-                elements,
-                s3SignedLink
-            );
-            updateSignedLinkReferences(elements, s3SignedLink);
         });
     }
 

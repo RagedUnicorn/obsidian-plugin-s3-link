@@ -13,14 +13,10 @@ import Config from "../config";
  * There could be a new updated version of the file that the signed link is pointing to.
  */
 export default class LocalStorageSignedLinkCache extends LocalStorageCache {
-    protected readonly moduleName = "SignedLinkCache";
+    protected readonly moduleName = "LocalStorageSignedLinkCache";
 
     constructor() {
         super(Config.S3_SIGNED_LINKS_CACHE_PATH);
-    }
-
-    public async init() {
-        console.info(`${this.moduleName}: Initializing signed link cache`);
     }
 
     /**
@@ -73,7 +69,7 @@ export default class LocalStorageSignedLinkCache extends LocalStorageCache {
             `${this.moduleName}::clearSignedLinkCache - Clearing signed link cache`
         );
 
-        this.clearLocalStorage(Config.S3_SIGNED_LINKS_CACHE_PATH);
+        this.clearLocalStorage(this.cachePath);
     }
 
     /**

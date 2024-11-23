@@ -1,68 +1,66 @@
-import { TFile, App } from "obsidian";
-import S3Link from "../model/s3Link";
+import { TFile, App, normalizePath } from "obsidian";
+import S3FileLink from "../model/s3FileLink";
 import Config from "../config";
 import * as path from "path";
 
+/**
+ * Retrieves the resource path for a given S3 file link.
+ *
+ * @param s3FileLink The S3 file link.
+ * @param app The Obsidian app instance.
+ *
+ * @returns The resource path.
+ */
 export async function getVaultResourcePath(
-    arg: S3Link,
-    app: App
-): Promise<string>;
-
-export async function getVaultResourcePath(
-    arg: TFile,
-    app: App
-): Promise<string>;
-
-export async function getVaultResourcePath(
-    arg: S3Link | TFile,
-    app: App
-): Promise<string>;
-
-export async function getVaultResourcePath(
-    arg: S3Link | TFile,
+    s3FileLink: S3FileLink,
     app: App
 ): Promise<string> {
-    let loadedFile: TFile | null = null;
+    const fileExtension = path.extname(s3FileLink.objectKey);
+    const filePath = normalizePath(
+        `${Config.S3_FILE_LINK_CACHE_FOLDER}/${s3FileLink.versionId}${fileExtension}`
+    );
+    const loadedFile = await this.getAbstractFileWithRetry(app, filePath);
 
-    if (arg instanceof S3Link) {
-        // const fileExtension = path.extname(arg.objectKey);
-        // const filePath = `${Config.CACHE_FOLDER}/${arg.versionId}${fileExtension}`;
-        // loadedFile = await getAbstractFileWithRetry(filePath);
-        if (loadedFile == null) {
-            throw new Error(
-                `Could not load file '${"filePath TODO TODO TODO"}'`
-            );
-        }
-    } else if (arg instanceof TFile) {
-        loadedFile = <TFile>arg;
-    } else {
-        throw new Error("Invalid argument");
+    if (loadedFile == null) {
+        throw new Error(`Failed to retrieve resource path for ${s3FileLink}`);
     }
 
     return app.vault.getResourcePath(loadedFile);
 }
 
-export async function getResourcePath(
-    resource: S3Link | TFile,
-    objectKey: string,
-    app: App
-): Promise<string>;
+/**
+ * When files are not written with writeBinary, they are not immediately available. WriteBinary
+ * is not being used to support writing files as streams. This is necessary for large files.
+ * The function will retry multiple times to load the file and if it cannot it returns null. Usually
+ * the file is available after 1-2 retries.
+ *
+ * @param app the Obsidian app
+ * @param path the relative path of the file to load
+ * @param retries the number of retries
+ * @param interval the interval between retries in milliseconds
+ *
+ * @returns a TFile or null if the file could not be loaded
+ */
+export async function getAbstractFileWithRetry(
+    app: App,
+    path: string,
+    retries = 10,
+    interval = 100
+): Promise<TFile | null> {
+    for (let i = 0; i < retries; i++) {
+        const file = app.vault.getAbstractFileByPath(path);
 
-export async function getResourcePath(
-    resource: S3Link | TFile,
-    objectKey: string,
-    app: App
-): Promise<string> {
-    let resourcePath = "";
+        if (file) {
+            if (file instanceof TFile) {
+                return file as TFile;
+            } else {
+                // file can be a TFolder but is not expected here
+                throw new Error(`File is not a TFile: ${file}`);
+            }
+        }
 
-    try {
-        resourcePath = await getVaultResourcePath(resource, app);
-    } catch (error) {
-        // sendNotification(
-        // "Failed to retrieve cached item. Item will be reloaded next time you open the file or reload Obsidian."
-        // );
-        // this.cache.removeItemFromCache(objectKey);
+        await new Promise((res) => setTimeout(res, interval));
     }
 
-    return resourcePath;
+    return null;
 }

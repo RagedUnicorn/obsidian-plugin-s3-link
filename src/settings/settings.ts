@@ -1,5 +1,3 @@
-const moduleName = "Settings";
-
 export interface PluginSettings {
     bucketName: string;
     region: string;

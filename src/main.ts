@@ -4,8 +4,10 @@ import { PluginSettings, DEFAULT_SETTINGS } from "./settings/settings";
 import { AwsS3Client } from "./network/awsS3Client";
 import { CodeMirrorExtension } from "./editor/codeMirrorExtension";
 import { MarkdownPostProcessor } from "./editor/markdownPostProcessor";
+import HtmlProcessor from "./editor/htmlProcessor";
 import FileCache from "./cache/fileCache";
 import LocalStorageSignedLinkCache from "./cache/localStorageSignedLinkCache";
+import LocalStorageFileLinkCache from "./cache/localStorageFileLinkCache";
 
 /**
  * Entrypoint calss for the S3LinkPlugin.
@@ -17,7 +19,9 @@ export default class S3LinkPlugin extends Plugin {
     markdownPostProcessor: MarkdownPostProcessor;
     codeMirrorExtension: CodeMirrorExtension;
     fileCache: FileCache;
+    htmlProcessor: HtmlProcessor;
     localStorageSignedLinkCache: LocalStorageSignedLinkCache;
+    localStorageFileLinkCache: LocalStorageFileLinkCache;
 
     /**
      * Entrypoint for plugin initialization.
@@ -26,6 +30,7 @@ export default class S3LinkPlugin extends Plugin {
         try {
             await this.loadSettings();
             this.setupFileCache();
+            this.htmlProcessor = new HtmlProcessor(this.fileCache, this.app);
             this.setupLocalStorageCache();
             this.setupAwsS3Client();
             this.registerEditorTools();
@@ -35,6 +40,14 @@ export default class S3LinkPlugin extends Plugin {
                 error
             );
         }
+    }
+
+    /**
+     * Entrypoint for plugin unloading.
+     */
+    async onunload(): Promise<void> {
+        console.info(`${this.moduleName}::onunload - Unloading plugin`);
+        this.fileCache.closeAllOpenStreams();
     }
 
     /**
@@ -85,9 +98,7 @@ export default class S3LinkPlugin extends Plugin {
         );
 
         this.localStorageSignedLinkCache = new LocalStorageSignedLinkCache();
-        this.localStorageSignedLinkCache.init();
-
-        // TODO do the same for the file cache
+        this.localStorageFileLinkCache = new LocalStorageFileLinkCache();
 
         console.info(
             `${this.moduleName}::setupLocalStorageCache - Local storage cache setup complete`

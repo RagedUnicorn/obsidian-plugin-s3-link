@@ -44,7 +44,7 @@ export default class ImageResolver extends Resolver {
         imageElements.forEach((imageElement) => {
             const parts = imageElement.src.split(Config.S3_LINK_SPLITTER);
 
-            if (parts[this.s3LinkLeftPart] == Config.S3_LINK_PREFIX) {
+            if (parts[this.s3LinkLeftPart] == Config.S3_FILE_LINK_PREFIX) {
                 console.debug(
                     `${this.moduleName} - ImageResolver found link:`,
                     imageElement.src

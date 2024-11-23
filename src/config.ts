@@ -1,16 +1,21 @@
 export default abstract class Config {
     static readonly PLUGIN_NAME = "obsidian-plugin-s3-link";
     static readonly PLUGIN_DISPLAY_NAME = "S3 Link Plugin";
-    static readonly S3_LINK_PREFIX = "s3";
     static readonly S3_LINK_SPLITTER = ":";
-    static readonly S3_LINK_EXPIRATION_TIME_SECONDS = 60 * 60; // 1 hour
-    static readonly S3_SIGNED_LINK_PREFIX = "s3-sign";
-    static readonly S3_SIGNED_LINK_EXPIRATION_TIME_SECONDS = 60 * 60 * 24 * 7; // 7 days
     static readonly S3_LINK_PLUGIN_DATA_ATTRIBUTE = "data-object-key";
+
+    // aws
     static readonly AWS_CREDENTIALS_FILE_PATH = ".aws\\credentials";
     static readonly AWS_PROFILE_NAME_NONE = "None";
 
-    static readonly CACHE_FOLDER = "s3_link_cache";
-    static readonly S3_SIGNED_LINKS_CACHE_PATH = "s3SignedLinks";
+    // s3 file link
+    static readonly S3_FILE_LINK_PREFIX = "s3";
+    static readonly S3_FILE_LINK_DOWNLOAD_TIMEOUT = 120000; // 2 minutes
     static readonly S3_FILE_LINKS_CACHE_PATH = "s3FileLinks";
+    static readonly S3_FILE_LINK_CACHE_FOLDER = "s3_link_cache";
+
+    // s3 signed link
+    static readonly S3_SIGNED_LINK_PREFIX = "s3-sign";
+    static readonly S3_SIGNED_LINK_EXPIRATION_TIME_SECONDS = 60 * 60 * 24 * 7; // 7 days
+    static readonly S3_SIGNED_LINKS_CACHE_PATH = "s3SignedLinks";
 }
