@@ -5,16 +5,17 @@ import { isEditorModePreview } from "../util/editorHelper";
 import LinkProcessor from "../editor/linkProcessor";
 import ImageResolver from "../resolver/imageResolver";
 import VideoResolver from "../resolver/videoResolver";
+import AudioResolver from "../resolver/audioResolver";
 
 export default class MarkdownPostProcessor {
     private readonly moduleName = "S3PostProcessor";
     private app: App;
-    private plugin: S3LinkPlugin;
     private linkProcessor: LinkProcessor;
     private imageResolver: ImageResolver;
     private videoResolver: VideoResolver;
+    private audioResolver: AudioResolver;
 
-    constructor(plugin: S3LinkPlugin) {
+    constructor(private plugin: S3LinkPlugin) {
         this.app = plugin.app;
         this.linkProcessor = new LinkProcessor(
             plugin.fileCache,
@@ -25,6 +26,7 @@ export default class MarkdownPostProcessor {
         );
         this.imageResolver = new ImageResolver();
         this.videoResolver = new VideoResolver();
+        this.audioResolver = new AudioResolver();
 
         console.info(
             `${this.moduleName}::constructor - MarkdownPostProcessor created`
@@ -56,6 +58,7 @@ export default class MarkdownPostProcessor {
 
         this.processImageLinks(element);
         this.processVideoLinks(element);
+        this.processAudioLinks(element);
     }
 
     /**
@@ -88,5 +91,21 @@ export default class MarkdownPostProcessor {
         );
 
         this.linkProcessor.processLinks(resolvedS3VideoLinks);
+    }
+
+    /**
+     * Process and update audio links in the view.
+     *
+     * @param update
+     */
+    private async processAudioLinks(element: HTMLElement) {
+        const resolvedS3AudioLinks =
+            this.audioResolver.resolveHtmlElement(element);
+        console.debug(
+            `${this.moduleName}::processAudioLinks - Resolved S3 audio links`,
+            resolvedS3AudioLinks
+        );
+
+        this.linkProcessor.processLinks(resolvedS3AudioLinks);
     }
 }

@@ -22,16 +22,16 @@ export default class LinkProcessor {
         console.info(`${this.moduleName}::constructor - LinkProcessor created`);
     }
 
-    public async processLinks(resolvedS3ImageLinks: {
+    public async processLinks(resolvedLinks: {
         objectKeys: Map<string, HTMLElement[]>;
         signObjectKeys: Map<string, HTMLElement[]>;
     }) {
         const resolvedS3FileLinks: Map<string, HTMLElement[]> = new Map([
-            ...Array.from(resolvedS3ImageLinks.objectKeys.entries()),
+            ...Array.from(resolvedLinks.objectKeys.entries()),
         ]);
 
         const resolvedS3SignLinks: Map<string, HTMLElement[]> = new Map([
-            ...Array.from(resolvedS3ImageLinks.signObjectKeys.entries()),
+            ...Array.from(resolvedLinks.signObjectKeys.entries()),
         ]);
 
         await Promise.all([

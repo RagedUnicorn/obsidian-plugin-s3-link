@@ -13,12 +13,14 @@ import { isEditorModeSource } from "../util/editorHelper";
 import LinkProcessor from "../editor/linkProcessor";
 import ImageResolver from "../resolver/imageResolver";
 import VideoResolver from "../resolver/videoResolver";
+import AudioResolver from "../resolver/audioResolver";
 
 export default class CodeMirrorExtension {
     private readonly moduleName = "CodeMirrorExtension";
     private linkProcessor: LinkProcessor;
     private imageResolver: ImageResolver;
     private videoResolver: VideoResolver;
+    private AudioResolver: AudioResolver;
 
     constructor(private plugin: S3LinkPlugin) {
         this.linkProcessor = new LinkProcessor(
@@ -30,6 +32,7 @@ export default class CodeMirrorExtension {
         );
         this.imageResolver = new ImageResolver();
         this.videoResolver = new VideoResolver();
+        this.AudioResolver = new AudioResolver();
 
         console.info(
             `${this.moduleName}::constructor - CodeMirrorExtension created`
@@ -130,6 +133,7 @@ export default class CodeMirrorExtension {
 
         this.processImageLinks(update);
         this.processVideoLinks(update);
+        this.processAudioLinks(update);
     }
 
     /**
@@ -142,7 +146,7 @@ export default class CodeMirrorExtension {
             view.dom
         );
         console.debug(
-            `${this.moduleName}::updateView - Resolved S3 image links`,
+            `${this.moduleName}::processImageLinks - Resolved S3 image links`,
             resolvedS3ImageLinks
         );
 
@@ -159,11 +163,28 @@ export default class CodeMirrorExtension {
             view.dom
         );
         console.debug(
-            `${this.moduleName}::updateView - Resolved S3 video links`,
+            `${this.moduleName}::processVideoLinks - Resolved S3 video links`,
             resolvedS3VideoLinks
         );
 
         this.linkProcessor.processLinks(resolvedS3VideoLinks);
+    }
+
+    /**
+     * Process and update audio links in the view.
+     *
+     * @param update
+     */
+    private async processAudioLinks(view: EditorView) {
+        const resolvedS3AudioLinks = this.AudioResolver.resolveHtmlElement(
+            view.dom
+        );
+        console.debug(
+            `${this.moduleName}::processAudioLinks - Resolved S3 audio links`,
+            resolvedS3AudioLinks
+        );
+
+        this.linkProcessor.processLinks(resolvedS3AudioLinks);
     }
 
     onunload() {

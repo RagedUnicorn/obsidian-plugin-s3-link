@@ -1,5 +1,7 @@
 import { App } from "obsidian";
 
+import path from "path";
+
 import Config from "../config";
 import S3FileLink from "../model/s3FileLink";
 import S3SignedLink from "../model/s3SignedLink";
@@ -55,7 +57,7 @@ export default class HtmlProcessor {
         s3FileLink: S3FileLink
     ) {
         console.debug(
-            "updateFileLinkReferences - Updating file link references",
+            `${this.moduleName}::updateFileLinkReferences - Updating file link references`,
             s3FileLink,
             elements
         );
@@ -65,7 +67,7 @@ export default class HtmlProcessor {
                 this.updateElementFileLink(htmlElement, s3FileLink);
             } catch (error) {
                 console.error(
-                    "updateFileLinkReferences - Error updating element",
+                    `${this.moduleName}::updateFileLinkReferences - Error updating element`,
                     htmlElement,
                     error
                 );
@@ -89,6 +91,8 @@ export default class HtmlProcessor {
             this.updateImageElement(htmlElement, source);
         } else if (htmlElement instanceof HTMLVideoElement) {
             this.updateVideoElement(htmlElement, source);
+        } else if (htmlElement instanceof HTMLAudioElement) {
+            this.updateAudioElement(htmlElement, source);
         } else {
             throw new Error(`Unsupported HTML element: ${htmlElement.tagName}`);
         }
@@ -96,7 +100,7 @@ export default class HtmlProcessor {
         // Add custom attribute to the element for tracking
         htmlElement.setAttribute(
             Config.S3_LINK_PLUGIN_DATA_ATTRIBUTE,
-            `${Config.S3_SIGNED_LINK_PREFIX}/${s3FileLink.objectKey}`
+            `${Config.S3_FILE_LINK_PREFIX}/${s3FileLink.objectKey}`
         );
     }
 
@@ -143,6 +147,8 @@ export default class HtmlProcessor {
             this.updateImageElement(htmlElement, s3SignedLink.signedUrl);
         } else if (htmlElement instanceof HTMLVideoElement) {
             this.updateVideoElement(htmlElement, s3SignedLink.signedUrl);
+        } else if (htmlElement instanceof HTMLAudioElement) {
+            this.updateAudioElement(htmlElement, s3SignedLink.signedUrl);
         } else {
             throw new Error(`Unsupported HTML element: ${htmlElement.tagName}`);
         }
@@ -155,20 +161,17 @@ export default class HtmlProcessor {
     }
 
     /**
-     * Update the signed link reference for an HTMLImageElement.
+     * Update the src reference for an HTMLImageElement.
      *
      * @param imageElement - The HTMLImageElement to update.
      * @param source - Resource path to the file or an S3 signed link.
      */
-    private async updateImageElement(
-        imageElement: HTMLImageElement,
-        source: string
-    ) {
+    private updateImageElement(imageElement: HTMLImageElement, source: string) {
         imageElement.src = source;
     }
 
     /**
-     * Update the signed link reference for an HTMLVideoElement.
+     * Update the src reference for an HTMLVideoElement.
      *
      * @param videoElement - The HTMLVideoElement to update.
      * @param source - Resource path to the file or an S3 signed link.
@@ -176,5 +179,17 @@ export default class HtmlProcessor {
     private updateVideoElement(videoElement: HTMLVideoElement, source: string) {
         videoElement.autoplay = false; // Ensure autoplay is disabled for videos
         videoElement.src = source;
+    }
+
+    /**
+     * Update the src reference for an HTMLAudioElement.
+     *
+     * @param audioElement
+     * @param source
+     */
+    private updateAudioElement(audioElement: HTMLAudioElement, source: string) {
+        audioElement.src = source;
+        audioElement.controls = true;
+        audioElement.autoplay = false;
     }
 }
