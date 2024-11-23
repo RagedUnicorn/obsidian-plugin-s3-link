@@ -1,4 +1,5 @@
 import mitt, { Emitter } from "mitt";
+
 import S3SignedLink from "../model/s3SignedLink";
 import S3FileLink from "../model/s3FileLink";
 

@@ -1,10 +1,13 @@
 import { Plugin } from "obsidian";
-import Config from "./config";
+
 import { PluginSettings, DEFAULT_SETTINGS } from "./settings/settings";
-import { AwsS3Client } from "./network/awsS3Client";
-import { CodeMirrorExtension } from "./editor/codeMirrorExtension";
-import { MarkdownPostProcessor } from "./editor/markdownPostProcessor";
+import Config from "./config";
+
+import AwsS3Client from "./network/awsS3Client";
+import CodeMirrorExtension from "./editor/codeMirrorExtension";
+import MarkdownPostProcessor from "./editor/markdownPostProcessor";
 import HtmlProcessor from "./editor/htmlProcessor";
+
 import FileCache from "./cache/fileCache";
 import LocalStorageSignedLinkCache from "./cache/localStorageSignedLinkCache";
 import LocalStorageFileLinkCache from "./cache/localStorageFileLinkCache";

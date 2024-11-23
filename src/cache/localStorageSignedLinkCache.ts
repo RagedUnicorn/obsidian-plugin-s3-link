@@ -1,6 +1,6 @@
+import Config from "../config";
 import LocalStorageCache from "./localStorageCache";
 import S3SignedLink from "../model/s3SignedLink";
-import Config from "../config";
 
 /**
  * A class to cache s3 signed links in the browser's local storage.

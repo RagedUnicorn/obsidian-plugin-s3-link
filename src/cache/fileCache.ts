@@ -1,8 +1,10 @@
 import { App, normalizePath, FileSystemAdapter, TFile } from "obsidian";
-import Config from "../config";
+
 import * as path from "path";
 import * as fs from "fs";
 import { Readable } from "stream";
+
+import Config from "../config";
 import S3FileLink from "../model/s3FileLink";
 
 export default class FileCache {

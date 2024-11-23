@@ -1,7 +1,8 @@
+import { App } from "obsidian";
+
 import Config from "../config";
 import S3FileLink from "../model/s3FileLink";
 import S3SignedLink from "../model/s3SignedLink";
-import { App } from "obsidian";
 import FileCache from "../cache/fileCache";
 import { emitter } from "../event/event";
 

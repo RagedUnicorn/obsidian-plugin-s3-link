@@ -1,6 +1,6 @@
+import Config from "../config";
 import LocalStorageCache from "./localStorageCache";
 import S3FileLink from "../model/s3FileLink";
-import Config from "../config";
 
 /**
  * A class to cache S3 file links in the browser's local storage.

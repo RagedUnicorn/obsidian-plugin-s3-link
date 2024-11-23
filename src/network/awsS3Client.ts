@@ -5,15 +5,15 @@ import {
     ListObjectVersionsCommandOutput,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { PluginSettings } from "../settings/settings";
+import { Readable } from "stream";
+
 import Config from "../config";
+import { PluginSettings } from "../settings/settings";
 import AwsCredentialProvider from "../aws/awsCredentialProvider";
 import AwsCredential from "../aws/awsCredential";
 
-import { Readable } from "stream";
-
-export class AwsS3Client {
-    private readonly moduleName = "AwsClient";
+export default class AwsS3Client {
+    private readonly moduleName = "AwsS3Client";
     private awsS3Client: S3Client;
     private awsCredentialProvider = new AwsCredentialProvider();
 

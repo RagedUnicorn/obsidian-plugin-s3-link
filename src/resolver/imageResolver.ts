@@ -32,7 +32,7 @@ export default class ImageResolver extends Resolver {
 
         if (imageElements.length == 0) {
             console.debug(
-                `${this.moduleName} - Rendered markdown content does not contain any image tags, aborting...`
+                `${this.moduleName}::resolveHtmlElement - Rendered markdown content does not contain any image tags, aborting...`
             );
 
             return {
@@ -46,7 +46,7 @@ export default class ImageResolver extends Resolver {
 
             if (parts[this.s3LinkLeftPart] == Config.S3_FILE_LINK_PREFIX) {
                 console.debug(
-                    `${this.moduleName} - ImageResolver found link:`,
+                    `${this.moduleName}::resolveHtmlElement - ImageResolver found link:`,
                     imageElement.src
                 );
 
@@ -55,7 +55,7 @@ export default class ImageResolver extends Resolver {
                 parts[this.s3LinkLeftPart] == Config.S3_SIGNED_LINK_PREFIX
             ) {
                 console.debug(
-                    `${this.moduleName} - ImageResolver found sign link:`,
+                    `${this.moduleName}::resolveHtmlElement - ImageResolver found sign link:`,
                     imageElement.src
                 );
 

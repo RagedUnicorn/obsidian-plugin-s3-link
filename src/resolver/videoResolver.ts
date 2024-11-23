@@ -32,7 +32,7 @@ export default class VideoResolver extends Resolver {
 
         if (videoElements.length == 0) {
             console.debug(
-                `${this.moduleName} - Rendered markdown content does not contain any video tags, aborting...`
+                `${this.moduleName}::resolveHtmlElement - Rendered markdown content does not contain any video tags, aborting...`
             );
 
             return {
@@ -46,7 +46,7 @@ export default class VideoResolver extends Resolver {
 
             if (parts[this.s3LinkLeftPart] == Config.S3_FILE_LINK_PREFIX) {
                 console.debug(
-                    `${this.moduleName} - VideoResolver found link:`,
+                    `${this.moduleName}::resolveHtmlElement - VideoResolver found link:`,
                     videoElement.src
                 );
 
@@ -55,7 +55,7 @@ export default class VideoResolver extends Resolver {
                 parts[this.s3LinkLeftPart] == Config.S3_SIGNED_LINK_PREFIX
             ) {
                 console.debug(
-                    `${this.moduleName} - VideoResolver found sign link:`,
+                    `${this.moduleName}::resolveHtmlElement - VideoResolver found sign link:`,
                     videoElement.src
                 );
 

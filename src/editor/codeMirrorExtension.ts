@@ -1,20 +1,20 @@
+import { App } from "obsidian";
+import { debounce } from "obsidian";
+
 import {
     ViewPlugin,
     ViewUpdate,
     PluginValue,
     EditorView,
 } from "@codemirror/view";
-import { App } from "obsidian";
-import { debounce } from "obsidian";
-import S3LinkPlugin from "../main";
 
-import { emitter } from "../event/event";
+import S3LinkPlugin from "../main";
 import { isEditorModeSource } from "../util/editorHelper";
-import { LinkProcessor } from "../editor/linkProcessor";
+import LinkProcessor from "../editor/linkProcessor";
 import ImageResolver from "../resolver/imageResolver";
 import VideoResolver from "../resolver/videoResolver";
 
-export class CodeMirrorExtension {
+export default class CodeMirrorExtension {
     private readonly moduleName = "CodeMirrorExtension";
     private linkProcessor: LinkProcessor;
     private imageResolver: ImageResolver;
