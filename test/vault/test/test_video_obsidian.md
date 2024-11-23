@@ -9,8 +9,6 @@ tags:
 
 #### Video
 
-<video src="s3-sign:s3_video_test_1.mp4" controls></video>
-
-<video src="s3-sign:s3_video_test_2.mp4" controls></video>
-
-<video src="s3-sign:s3_video_test_3.mp4" controls></video>
+![[s3_video_test_1.mp4]]
+![[s3_video_test_2.mp4]]
+![[s3_video_test_3.mp4]]
