@@ -42,7 +42,7 @@ export default class FileCache {
      * @returns true if the cache folder is present, false otherwise
      */
     private async isCacheFolderPresent(): Promise<boolean> {
-        const cachePath = this.getCachePath();
+        const cachePath = this.getRelativeCachePath();
 
         try {
             return await this.app.vault.adapter.exists(cachePath);
@@ -56,12 +56,33 @@ export default class FileCache {
     }
 
     /**
-     * Retrieves the full path to the cache folder.
+     * Retrieves the relative path to the cache folder.
      *
      * @returns the normalized relative path to the cache folder
      */
-    private getCachePath(): string {
+    private getRelativeCachePath(): string {
         const cachePath = normalizePath(`${Config.S3_FILE_LINK_CACHE_FOLDER}`);
+
+        console.debug(
+            `${this.moduleName}::getCachePath - Cache path: ${cachePath}`
+        );
+
+        return cachePath;
+    }
+
+    /**
+     * Retrieves the full path to the cache folder.
+     *
+     * @returns the normalized full path to the cache folder
+     */
+    private getFullCachePath(): string {
+        const basePath = (
+            this.app.vault.adapter as FileSystemAdapter
+        ).getBasePath();
+
+        const cachePath = normalizePath(
+            `${basePath}/${Config.S3_FILE_LINK_CACHE_FOLDER}`
+        );
 
         console.debug(
             `${this.moduleName}::getCachePath - Cache path: ${cachePath}`
@@ -104,10 +125,10 @@ export default class FileCache {
         return new Promise((resolve, reject) => {
             const fileExtension = path.extname(objectKey);
             const objectPath = normalizePath(
-                `${this.getCachePath()}\\${versionId}${fileExtension}`
+                `${this.getFullCachePath()}\\${versionId}${fileExtension}`
             ); // full path for writing file
             const writeStream = fs.createWriteStream(objectPath);
-
+            console.error("objectPath", objectPath);
             this.addOpenStream(writeStream);
             stream.pipe(writeStream);
 
