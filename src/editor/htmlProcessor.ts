@@ -185,8 +185,13 @@ export default class HtmlProcessor {
      * @param source - Resource path to the file or an S3 signed link.
      */
     private updateVideoElement(videoElement: HTMLVideoElement, source: string) {
-        videoElement.autoplay = false; // Ensure autoplay is disabled for videos
+        if (this.isElementProcessed(videoElement)) return;
+
         videoElement.src = source;
+        videoElement.controls = true;
+        videoElement.autoplay = false; // Ensure autoplay is disabled for videos
+
+        this.markElementAsProcessed(videoElement);
     }
 
     /**
@@ -225,10 +230,7 @@ export default class HtmlProcessor {
      * @param source - Resource path to the file or an S3 signed link.
      */
     private updateDivElement(divElement: HTMLDivElement, source: string) {
-        if (divElement.hasAttribute("s3-plugin-proccess")) {
-            console.error("htmlElement already processed", divElement);
-            return;
-        }
+        if (this.isElementProcessed(divElement)) return;
 
         // TODO it depends on the source what kind of element we need to generate
         // it could also be that we want to display an audio file
@@ -238,13 +240,32 @@ export default class HtmlProcessor {
         const videoTag = document.createElement("video");
         videoTag.src = source;
         videoTag.controls = true;
+        videoTag.autoplay = false;
 
+        // removing the obsidian file not found message
         while (divElement.firstChild) {
             divElement.removeChild(divElement.firstChild);
         }
         // Replace the original embed with the new video tag
         divElement.appendChild(videoTag);
         // TODO not yet sure how this works if I change the element
-        divElement.setAttribute("s3-plugin-proccess", "true"); // TODO work done
+        this.markElementAsProcessed(divElement);
+    }
+
+    /**
+     * Check if an element has already been processed by the plugin.
+     * @param element - The HTML element to check.
+     * @returns True if the element has been processed, false otherwise.
+     */
+    private isElementProcessed(element: HTMLElement): boolean {
+        return element.hasAttribute(Config.S3_PLUGIN_PROCESSED);
+    }
+
+    /**
+     * Mark an element as processed by the plugin.
+     * @param element - The HTML element to mark as processed.
+     */
+    private markElementAsProcessed(element: HTMLElement) {
+        element.setAttribute(Config.S3_PLUGIN_PROCESSED, "true");
     }
 }

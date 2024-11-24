@@ -4,6 +4,8 @@ export default abstract class Config {
     static readonly S3_LINK_SPLITTER = ":";
     static readonly S3_LINK_PLUGIN_DATA_ATTRIBUTE = "data-object-key";
 
+    static readonly S3_PLUGIN_PROCESSED = "s3-plugin-processed";
+
     // aws
     static readonly AWS_CREDENTIALS_FILE_PATH = ".aws\\credentials";
     static readonly AWS_PROFILE_NAME_NONE = "None";
