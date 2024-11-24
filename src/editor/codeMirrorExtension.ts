@@ -14,6 +14,7 @@ import LinkProcessor from "../editor/linkProcessor";
 import ImageResolver from "../resolver/imageResolver";
 import VideoResolver from "../resolver/videoResolver";
 import AudioResolver from "../resolver/audioResolver";
+import DivEmbedResolver from "../resolver/divEmbedResolver";
 
 export default class CodeMirrorExtension {
     private readonly moduleName = "CodeMirrorExtension";
@@ -21,6 +22,7 @@ export default class CodeMirrorExtension {
     private imageResolver: ImageResolver;
     private videoResolver: VideoResolver;
     private AudioResolver: AudioResolver;
+    private DivEmbedResolver: DivEmbedResolver;
 
     constructor(private plugin: S3LinkPlugin) {
         this.linkProcessor = new LinkProcessor(
@@ -33,6 +35,8 @@ export default class CodeMirrorExtension {
         this.imageResolver = new ImageResolver();
         this.videoResolver = new VideoResolver();
         this.AudioResolver = new AudioResolver();
+        // TODO did not import span embed resolver on purpose
+        this.DivEmbedResolver = new DivEmbedResolver();
 
         console.info(
             `${this.moduleName}::constructor - CodeMirrorExtension created`
@@ -81,7 +85,6 @@ export default class CodeMirrorExtension {
                 childList: true,
                 subtree: true,
             });
-            console.log(view);
 
             return {
                 update(updatedView: ViewUpdate) {
@@ -131,20 +134,21 @@ export default class CodeMirrorExtension {
             `${this.moduleName}::updateView - Processing rendered html content`
         );
 
-        this.processImageLinks(update);
-        this.processVideoLinks(update);
-        this.processAudioLinks(update);
+        this.processImageLinks(update.dom);
+        this.processVideoLinks(update.dom);
+        this.processAudioLinks(update.dom);
+        this.processDivEmbedLinks(update.dom);
     }
 
     /**
      * Process and update image links in the view.
      *
-     * @param update
+     * @param htmlElement - The HTML element to process
      */
-    private async processImageLinks(view: EditorView) {
-        const resolvedS3ImageLinks = this.imageResolver.resolveHtmlElement(
-            view.dom
-        );
+    private async processImageLinks(htmlElement: HTMLElement) {
+        const resolvedS3ImageLinks =
+            this.imageResolver.resolveHtmlElement(htmlElement);
+
         console.debug(
             `${this.moduleName}::processImageLinks - Resolved S3 image links`,
             resolvedS3ImageLinks
@@ -156,12 +160,12 @@ export default class CodeMirrorExtension {
     /**
      * Process and update video links in the view.
      *
-     * @param update
+     * @param htmlElement - The HTML element to process
      */
-    private async processVideoLinks(view: EditorView) {
-        const resolvedS3VideoLinks = this.videoResolver.resolveHtmlElement(
-            view.dom
-        );
+    private async processVideoLinks(htmlElement: HTMLElement) {
+        const resolvedS3VideoLinks =
+            this.videoResolver.resolveHtmlElement(htmlElement);
+
         console.debug(
             `${this.moduleName}::processVideoLinks - Resolved S3 video links`,
             resolvedS3VideoLinks
@@ -173,18 +177,35 @@ export default class CodeMirrorExtension {
     /**
      * Process and update audio links in the view.
      *
-     * @param update
+     * @param htmlElement - The HTML element to process
      */
-    private async processAudioLinks(view: EditorView) {
-        const resolvedS3AudioLinks = this.AudioResolver.resolveHtmlElement(
-            view.dom
-        );
+    private async processAudioLinks(htmlElement: HTMLElement) {
+        const resolvedS3AudioLinks =
+            this.AudioResolver.resolveHtmlElement(htmlElement);
+
         console.debug(
             `${this.moduleName}::processAudioLinks - Resolved S3 audio links`,
             resolvedS3AudioLinks
         );
 
         this.linkProcessor.processLinks(resolvedS3AudioLinks);
+    }
+
+    /**
+     * Process and update div embed links in the view.
+     *
+     * @param htmlElement - The HTML element to process
+     */
+    private async processDivEmbedLinks(htmlElement: HTMLElement) {
+        const resolvedDivEmbedLinks =
+            this.DivEmbedResolver.resolveHtmlElement(htmlElement);
+
+        console.debug(
+            `${this.moduleName}::processDivEmbedLinks - Resolved div embed links`,
+            resolvedDivEmbedLinks
+        );
+
+        this.linkProcessor.processLinks(resolvedDivEmbedLinks);
     }
 
     onunload() {

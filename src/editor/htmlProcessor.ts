@@ -86,13 +86,17 @@ export default class HtmlProcessor {
         s3FileLink: S3FileLink
     ) {
         let source = await this.fileCache.getFileFromCacheFolder(s3FileLink);
-
+        console.error("htmlElement", htmlElement);
         if (htmlElement instanceof HTMLImageElement) {
             this.updateImageElement(htmlElement, source);
         } else if (htmlElement instanceof HTMLVideoElement) {
             this.updateVideoElement(htmlElement, source);
         } else if (htmlElement instanceof HTMLAudioElement) {
             this.updateAudioElement(htmlElement, source);
+        } else if (htmlElement instanceof HTMLSpanElement) {
+            this.updateSpanElement(htmlElement, source);
+        } else if (htmlElement instanceof HTMLDivElement) {
+            this.updateDivElement(htmlElement, source);
         } else {
             throw new Error(`Unsupported HTML element: ${htmlElement.tagName}`);
         }
@@ -149,6 +153,10 @@ export default class HtmlProcessor {
             this.updateVideoElement(htmlElement, s3SignedLink.signedUrl);
         } else if (htmlElement instanceof HTMLAudioElement) {
             this.updateAudioElement(htmlElement, s3SignedLink.signedUrl);
+        } else if (htmlElement instanceof HTMLSpanElement) {
+            this.updateSpanElement(htmlElement, s3SignedLink.signedUrl);
+        } else if (htmlElement instanceof HTMLDivElement) {
+            this.updateDivElement(htmlElement, s3SignedLink.signedUrl);
         } else {
             throw new Error(`Unsupported HTML element: ${htmlElement.tagName}`);
         }
@@ -184,12 +192,59 @@ export default class HtmlProcessor {
     /**
      * Update the src reference for an HTMLAudioElement.
      *
-     * @param audioElement
-     * @param source
+     * @param audioElement - The HTMLAudioElement to update.
+     * @param source - Resource path to the file or an S3 signed link.
      */
     private updateAudioElement(audioElement: HTMLAudioElement, source: string) {
         audioElement.src = source;
         audioElement.controls = true;
         audioElement.autoplay = false;
+    }
+
+    /**
+     * Update the span element with the new source.
+     *
+     * @param spanElement - The HTMLSpanElement to update.
+     * @param source - Resource path to the file or an S3 signed link.
+     */
+    private updateSpanElement(spanElement: HTMLSpanElement, source: string) {
+        // TODO it depends on the source what kind of element we need to generate
+        // it could also be that we want to display an audio file
+        const videoTag = document.createElement("video");
+        videoTag.src = source;
+        videoTag.controls = true;
+
+        // Replace the original embed with the new video tag
+        spanElement.replaceWith(videoTag);
+    }
+
+    /**
+     * Update the div element with the new source.
+     *
+     * @param divElement - The HTMLDivElement to update.
+     * @param source - Resource path to the file or an S3 signed link.
+     */
+    private updateDivElement(divElement: HTMLDivElement, source: string) {
+        if (divElement.hasAttribute("s3-plugin-proccess")) {
+            console.error("htmlElement already processed", divElement);
+            return;
+        }
+
+        // TODO it depends on the source what kind of element we need to generate
+        // it could also be that we want to display an audio file
+        console.error("updateDivElement", divElement);
+        // divElement.setAttribute("src", "processed"); // this is key TODO if we don't set this, the div will be processed again creating a loop
+        // the same might be required in other places TODO
+        const videoTag = document.createElement("video");
+        videoTag.src = source;
+        videoTag.controls = true;
+
+        while (divElement.firstChild) {
+            divElement.removeChild(divElement.firstChild);
+        }
+        // Replace the original embed with the new video tag
+        divElement.appendChild(videoTag);
+        // TODO not yet sure how this works if I change the element
+        divElement.setAttribute("s3-plugin-proccess", "true"); // TODO work done
     }
 }

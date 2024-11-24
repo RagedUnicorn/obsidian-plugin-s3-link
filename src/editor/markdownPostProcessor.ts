@@ -6,6 +6,7 @@ import LinkProcessor from "../editor/linkProcessor";
 import ImageResolver from "../resolver/imageResolver";
 import VideoResolver from "../resolver/videoResolver";
 import AudioResolver from "../resolver/audioResolver";
+import SpanEmbedResolver from "../resolver/spanEmbedResolver";
 
 export default class MarkdownPostProcessor {
     private readonly moduleName = "S3PostProcessor";
@@ -14,6 +15,7 @@ export default class MarkdownPostProcessor {
     private imageResolver: ImageResolver;
     private videoResolver: VideoResolver;
     private audioResolver: AudioResolver;
+    private spanEmbedResolver: SpanEmbedResolver;
 
     constructor(private plugin: S3LinkPlugin) {
         this.app = plugin.app;
@@ -27,6 +29,8 @@ export default class MarkdownPostProcessor {
         this.imageResolver = new ImageResolver();
         this.videoResolver = new VideoResolver();
         this.audioResolver = new AudioResolver();
+        // TODO span is only relevant for markdown preview? should not import to code mirror
+        this.spanEmbedResolver = new SpanEmbedResolver();
 
         console.info(
             `${this.moduleName}::constructor - MarkdownPostProcessor created`
@@ -59,6 +63,7 @@ export default class MarkdownPostProcessor {
         this.processImageLinks(element);
         this.processVideoLinks(element);
         this.processAudioLinks(element);
+        this.processSpanEmbedLinks(element);
     }
 
     /**
@@ -107,5 +112,21 @@ export default class MarkdownPostProcessor {
         );
 
         this.linkProcessor.processLinks(resolvedS3AudioLinks);
+    }
+
+    /**
+     * Process and update span embed links in the view.
+     *
+     * @param update
+     */
+    private async processSpanEmbedLinks(element: HTMLElement) {
+        const resolvedS3SpanEmbedLinks =
+            this.spanEmbedResolver.resolveHtmlElement(element);
+        console.debug(
+            `${this.moduleName}::processSpanEmbedLinks - Resolved S3 span embed links`,
+            resolvedS3SpanEmbedLinks
+        );
+
+        this.linkProcessor.processLinks(resolvedS3SpanEmbedLinks);
     }
 }
