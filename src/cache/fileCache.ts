@@ -43,6 +43,7 @@ export default class FileCache {
      */
     private async isCacheFolderPresent(): Promise<boolean> {
         const cachePath = this.getCachePath();
+
         try {
             return await this.app.vault.adapter.exists(cachePath);
         } catch (error) {
@@ -57,16 +58,10 @@ export default class FileCache {
     /**
      * Retrieves the full path to the cache folder.
      *
-     * @returns the normalized full path to the cache folder
+     * @returns the normalized relative path to the cache folder
      */
     private getCachePath(): string {
-        const basePath = (
-            this.app.vault.adapter as FileSystemAdapter
-        ).getBasePath();
-
-        const cachePath = normalizePath(
-            `${basePath}/${Config.S3_FILE_LINK_CACHE_FOLDER}`
-        );
+        const cachePath = normalizePath(`${Config.S3_FILE_LINK_CACHE_FOLDER}`);
 
         console.debug(
             `${this.moduleName}::getCachePath - Cache path: ${cachePath}`
