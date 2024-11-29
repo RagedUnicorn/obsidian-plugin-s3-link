@@ -1,6 +1,10 @@
 import { Readable } from "stream";
 
 import { emitter } from "../event/event";
+import {
+    EVENT_FILE_LINK_PROCESSED,
+    EVENT_SIGN_LINK_PROCESSED,
+} from "../event/event";
 import S3SignedLink from "../model/s3SignedLink";
 import AwsS3Client from "../network/awsS3Client";
 import { PluginSettings } from "../settings/settings";
@@ -127,7 +131,7 @@ export default class LinkProcessor {
             `${this.moduleName}::emitSignLinkProcessed - Sending Event signLinkProcess`,
             s3SignedLink
         );
-        emitter.emit("signLinkProcessed", {
+        emitter.emit(EVENT_SIGN_LINK_PROCESSED, {
             elements: htmlElements,
             s3SignedLink,
         });
@@ -328,7 +332,7 @@ export default class LinkProcessor {
             `${this.moduleName}::emitFileLinkProcessed - Sending Event fileLinkProcessed`,
             s3FileLink
         );
-        emitter.emit("fileLinkProcessed", {
+        emitter.emit(EVENT_FILE_LINK_PROCESSED, {
             elements: htmlElements,
             s3FileLink,
         });

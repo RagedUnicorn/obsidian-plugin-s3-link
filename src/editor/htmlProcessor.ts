@@ -3,6 +3,12 @@ import { App } from "obsidian";
 import path from "path";
 
 import Config from "../config";
+import FileCache from "../cache/fileCache";
+import { emitter } from "../event/event";
+import {
+    EVENT_FILE_LINK_PROCESSED,
+    EVENT_SIGN_LINK_PROCESSED,
+} from "../event/event";
 import S3FileLink from "../model/s3FileLink";
 import S3SignedLink from "../model/s3SignedLink";
 import FileCache from "../cache/fileCache";
@@ -23,7 +29,7 @@ export default class HtmlProcessor {
      *
      */
     private setupEventListeners() {
-        emitter.on("signLinkProcessed", ({ elements, s3SignedLink }) => {
+        emitter.on(EVENT_SIGN_LINK_PROCESSED, ({ elements, s3SignedLink }) => {
             console.debug(
                 `${this.moduleName}::setupEventListeners - Received Event signLinkProcessed`,
                 elements,
@@ -32,7 +38,7 @@ export default class HtmlProcessor {
             this.updateSignedLinkReferences(elements, s3SignedLink);
         });
 
-        emitter.on("fileLinkProcessed", ({ elements, s3FileLink }) => {
+        emitter.on(EVENT_FILE_LINK_PROCESSED, ({ elements, s3FileLink }) => {
             console.debug(
                 `${this.moduleName}::setupEventListeners - Received Event fileLinkProcessed`,
                 elements,
