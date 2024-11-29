@@ -130,7 +130,7 @@ export default class FileCache {
                 `${this.getFullCachePath()}\\${normalizedVersionId}${fileExtension}`
             ); // full path for writing file
             const writeStream = fs.createWriteStream(objectPath);
-            console.error("objectPath", objectPath);
+
             this.addOpenStream(writeStream);
             stream.pipe(writeStream);
 

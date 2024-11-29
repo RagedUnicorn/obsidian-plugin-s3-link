@@ -1,7 +1,5 @@
 import { App } from "obsidian";
 
-import path from "path";
-
 import Config from "../config";
 import FileCache from "../cache/fileCache";
 import { emitter } from "../event/event";
@@ -11,8 +9,10 @@ import {
 } from "../event/event";
 import S3FileLink from "../model/s3FileLink";
 import S3SignedLink from "../model/s3SignedLink";
-import FileCache from "../cache/fileCache";
-import { emitter } from "../event/event";
+import {
+    DISPLAY_TYPE,
+    getDisplayTypeByObjectKey,
+} from "../constants/supportedFileTypes";
 
 export default class HtmlProcessor {
     private readonly moduleName = "HtmlProcessor";
@@ -92,7 +92,7 @@ export default class HtmlProcessor {
         s3FileLink: S3FileLink
     ) {
         let source = await this.fileCache.getFileFromCacheFolder(s3FileLink);
-        console.error("htmlElement", htmlElement);
+
         if (htmlElement instanceof HTMLImageElement) {
             this.updateImageElement(htmlElement, source);
         } else if (htmlElement instanceof HTMLVideoElement) {
@@ -100,7 +100,7 @@ export default class HtmlProcessor {
         } else if (htmlElement instanceof HTMLAudioElement) {
             this.updateAudioElement(htmlElement, source);
         } else if (htmlElement instanceof HTMLSpanElement) {
-            this.updateSpanElement(htmlElement, source);
+            this.updateSpanElement(htmlElement, source, s3FileLink.objectKey);
         } else if (htmlElement instanceof HTMLDivElement) {
             this.updateDivElement(htmlElement, source);
         } else {
@@ -160,7 +160,11 @@ export default class HtmlProcessor {
         } else if (htmlElement instanceof HTMLAudioElement) {
             this.updateAudioElement(htmlElement, s3SignedLink.signedUrl);
         } else if (htmlElement instanceof HTMLSpanElement) {
-            this.updateSpanElement(htmlElement, s3SignedLink.signedUrl);
+            this.updateSpanElement(
+                htmlElement,
+                s3SignedLink.signedUrl,
+                s3SignedLink.objectKey
+            );
         } else if (htmlElement instanceof HTMLDivElement) {
             this.updateDivElement(htmlElement, s3SignedLink.signedUrl);
         } else {
@@ -218,15 +222,45 @@ export default class HtmlProcessor {
      * @param spanElement - The HTMLSpanElement to update.
      * @param source - Resource path to the file or an S3 signed link.
      */
-    private updateSpanElement(spanElement: HTMLSpanElement, source: string) {
-        // TODO it depends on the source what kind of element we need to generate
-        // it could also be that we want to display an audio file
-        const videoTag = document.createElement("video");
-        videoTag.src = source;
-        videoTag.controls = true;
+    private updateSpanElement(
+        spanElement: HTMLSpanElement,
+        source: string,
+        objectKey: string
+    ) {
+        const displayType = getDisplayTypeByObjectKey(objectKey);
 
-        // Replace the original embed with the new video tag
-        spanElement.replaceWith(videoTag);
+        switch (displayType) {
+            case DISPLAY_TYPE.IMAGE:
+                // TODO this is the next step we can try out
+                // use ![[image.png]] to display an image
+                const imageTag = document.createElement("img");
+                imageTag.src = source;
+                // Replace the original embed with the new image tag
+                spanElement.replaceWith(imageTag);
+                break;
+            case DISPLAY_TYPE.VIDEO:
+                const videoTag = document.createElement("video");
+                videoTag.src = source;
+                videoTag.controls = true;
+                // Replace the original embed with the new video tag
+                spanElement.replaceWith(videoTag);
+                break;
+            case DISPLAY_TYPE.AUDIO:
+                const audioTag = document.createElement("audio");
+                audioTag.src = source;
+                audioTag.controls = true;
+
+                // Replace the original embed with the new audio tag
+                spanElement.replaceWith(audioTag);
+
+                break;
+            case DISPLAY_TYPE.INVALID:
+                console.error(
+                    `${this.moduleName}::updateSpanElement - Invalid display type`,
+                    objectKey
+                );
+                break;
+        }
     }
 
     /**
