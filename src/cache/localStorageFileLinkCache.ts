@@ -1,6 +1,7 @@
 import Config from "../config";
 import LocalStorageCache from "./localStorageCache";
 import S3FileLink from "../model/s3FileLink";
+import { normalizeVersionId } from "../util/obsidianHelper";
 
 /**
  * A class to cache S3 file links in the browser's local storage.
@@ -22,6 +23,8 @@ export default class LocalStorageFileLinkCache extends LocalStorageCache {
             `${this.moduleName}::cacheFileLink - Caching file link:`,
             fileLink
         );
+
+        fileLink.versionId = normalizeVersionId(fileLink.versionId);
 
         this.writeLocalStorage(fileLink);
     }

@@ -6,6 +6,7 @@ import { Readable } from "stream";
 
 import Config from "../config";
 import S3FileLink from "../model/s3FileLink";
+import { normalizeVersionId } from "../util/obsidianHelper";
 
 export default class FileCache {
     private readonly moduleName = "FileCache";
@@ -124,8 +125,9 @@ export default class FileCache {
     ): Promise<void> {
         return new Promise((resolve, reject) => {
             const fileExtension = path.extname(objectKey);
+            const normalizedVersionId = normalizeVersionId(versionId);
             const objectPath = normalizePath(
-                `${this.getFullCachePath()}\\${versionId}${fileExtension}`
+                `${this.getFullCachePath()}\\${normalizedVersionId}${fileExtension}`
             ); // full path for writing file
             const writeStream = fs.createWriteStream(objectPath);
             console.error("objectPath", objectPath);
