@@ -5,20 +5,54 @@ tags:
     - video
 ---
 
-> This is for obsidian testing. The plugin should ignore normal video embedding and not touch the videos at all
+> This is for S3 link plugin testing. The plugin should recognize the links, generate a signed S3 link and then display them.
 
-#### Video HTML Embed
+### MKV
 
-<video src="s3-sign:s3_video_test_1.mp4" controls></video>
+#### MKV HTML Embed
 
-<video src="s3-sign:s3_video_test_2.mp4" controls></video>
+<video src="s3-sign:videos/s3_video_html_embed_test_mkv.mkv">
 
-<video src="s3-sign:s3_video_test_3.mp4" controls></video>
+#### MKV Obsidian File Embed
 
-#### Video Obsidian Embed
+![[s3:videos/s3_video_obsidian_file_embed_test_mkv.mkv]]
 
-![[s3-sign:s3_video_test_1.mp4]]
+### MOV
 
-![[s3-sign:s3_video_test_2.mp4]]
+#### MOV HTML Embed
 
-![[s3-sign:s3_video_test_3.mp4]]
+<video src="s3-sign:videos/s3_video_html_embed_test_mov.mov">
+
+#### MOV Obsidian File Embed
+
+![[s3:videos/s3_video_obsidian_file_embed_test_mov.mov]]
+
+### MP4
+
+#### MP4 HTML Embed
+
+<video src="s3-sign:videos/s3_video_html_embed_test_mp4.mp4">
+
+#### MP4 Obsidian File Embed
+
+![[s3:videos/s3_video_obsidian_file_embed_test_mp4.mp4]]
+
+### OGV
+
+#### OGV HTML Embed
+
+<video src="s3-sign:videos/s3_video_html_embed_test_ogv.ogv">
+
+#### OGV Obsidian File Embed
+
+![[s3:videos/s3_video_obsidian_file_embed_test_ogv.ogv]]
+
+### WEBM
+
+#### WEBM HTML Embed
+
+<video src="s3-sign:videos/s3_video_html_embed_test_webm.webm">
+
+#### WEBM Obsidian File Embed
+
+![[s3:videos/s3_video_obsidian_file_embed_test_webm.webm]]

@@ -93,6 +93,8 @@ export default class HtmlProcessor {
     ) {
         let source = await this.fileCache.getFileFromCacheFolder(s3FileLink);
 
+        if (this.isElementProcessed(htmlElement)) return;
+
         if (htmlElement instanceof HTMLImageElement) {
             this.updateImageElement(htmlElement, source);
         } else if (htmlElement instanceof HTMLVideoElement) {
@@ -112,6 +114,8 @@ export default class HtmlProcessor {
             Config.S3_LINK_PLUGIN_DATA_ATTRIBUTE,
             `${Config.S3_FILE_LINK_PREFIX}/${s3FileLink.objectKey}`
         );
+
+        this.markElementAsProcessed(htmlElement);
     }
 
     /**
@@ -153,6 +157,8 @@ export default class HtmlProcessor {
         htmlElement: HTMLElement,
         s3SignedLink: S3SignedLink
     ) {
+        if (this.isElementProcessed(htmlElement)) return;
+
         if (htmlElement instanceof HTMLImageElement) {
             this.updateImageElement(htmlElement, s3SignedLink.signedUrl);
         } else if (htmlElement instanceof HTMLVideoElement) {
@@ -176,6 +182,8 @@ export default class HtmlProcessor {
             Config.S3_LINK_PLUGIN_DATA_ATTRIBUTE,
             `${Config.S3_SIGNED_LINK_PREFIX}/${s3SignedLink.objectKey}`
         );
+
+        this.markElementAsProcessed(htmlElement);
     }
 
     /**
@@ -195,13 +203,9 @@ export default class HtmlProcessor {
      * @param source - Resource path to the file or an S3 signed link.
      */
     private updateVideoElement(videoElement: HTMLVideoElement, source: string) {
-        if (this.isElementProcessed(videoElement)) return;
-
         videoElement.src = source;
         videoElement.controls = true;
         videoElement.autoplay = false; // Ensure autoplay is disabled for videos
-
-        this.markElementAsProcessed(videoElement);
     }
 
     /**
@@ -213,7 +217,7 @@ export default class HtmlProcessor {
     private updateAudioElement(audioElement: HTMLAudioElement, source: string) {
         audioElement.src = source;
         audioElement.controls = true;
-        audioElement.autoplay = false;
+        audioElement.autoplay = false; // Ensure autoplay is disabled for audio
     }
 
     /**
@@ -230,41 +234,79 @@ export default class HtmlProcessor {
         const displayType = getDisplayTypeByObjectKey(objectKey);
 
         switch (displayType) {
-            case DISPLAY_TYPE.IMAGE:
-                // TODO this is the next step we can try out
-                // use ![[image.png]] to display an image
-                const imageTag = document.createElement("img");
-                imageTag.src = source;
-                // Replace the original embed with the new image tag
+            case DISPLAY_TYPE.IMAGE: {
+                const imageTag = this.createMediaElement<HTMLImageElement>(
+                    "img",
+                    source
+                );
                 spanElement.replaceWith(imageTag);
-                break;
-            case DISPLAY_TYPE.VIDEO:
-                const videoTag = document.createElement("video");
-                videoTag.src = source;
-                videoTag.controls = true;
-                // Replace the original embed with the new video tag
-                spanElement.replaceWith(videoTag);
-                break;
-            case DISPLAY_TYPE.AUDIO:
-                const audioTag = document.createElement("audio");
-                audioTag.src = source;
-                audioTag.controls = true;
 
-                // Replace the original embed with the new audio tag
+                break;
+            }
+            case DISPLAY_TYPE.VIDEO: {
+                if (objectKey.endsWith(".webm")) {
+                    console.debug(
+                        `${this.moduleName}::updateSpanElement - WebM file detected`
+                    );
+
+                    const videoTag = this.createMediaElement<HTMLVideoElement>(
+                        "video",
+                        source
+                    );
+
+                    videoTag.onloadedmetadata = () => {
+                        if (videoTag.videoWidth > 0) {
+                            console.debug(
+                                `${this.moduleName}::updateSpanElement - WebM file detected as Video file.`
+                            );
+
+                            spanElement.replaceWith(videoTag);
+                        } else {
+                            console.debug(
+                                `${this.moduleName}::updateSpanElement - WebM file detected as Audio file.`
+                            );
+
+                            const audioTag =
+                                this.createMediaElement<HTMLAudioElement>(
+                                    "audio",
+                                    source
+                                );
+                            spanElement.replaceWith(audioTag);
+                        }
+                    };
+                } else {
+                    const videoTag = this.createMediaElement<HTMLVideoElement>(
+                        "video",
+                        source
+                    );
+                    spanElement.replaceWith(videoTag);
+                }
+
+                break;
+            }
+            case DISPLAY_TYPE.AUDIO: {
+                const audioTag = this.createMediaElement<HTMLAudioElement>(
+                    "audio",
+                    source
+                );
                 spanElement.replaceWith(audioTag);
 
                 break;
+            }
             case DISPLAY_TYPE.INVALID:
                 console.error(
                     `${this.moduleName}::updateSpanElement - Invalid display type`,
                     objectKey
                 );
+
                 break;
         }
     }
 
     /**
      * Update the div element with the new source.
+     *
+     * TODO this is used by codemirror TODO not yet working
      *
      * @param divElement - The HTMLDivElement to update.
      * @param source - Resource path to the file or an S3 signed link.
@@ -307,5 +349,27 @@ export default class HtmlProcessor {
      */
     private markElementAsProcessed(element: HTMLElement) {
         element.setAttribute(Config.S3_PLUGIN_PROCESSED, "true");
+    }
+
+    /**
+     * Create a media element with the given tag name and source.
+     *
+     * @param tagName - The tag name of the media element.
+     * @param src - The source of the media element.
+     *
+     * @returns The created media element.
+     */
+    private createMediaElement<T extends HTMLMediaElement | HTMLImageElement>(
+        tagName: string,
+        src: string
+    ): T {
+        const element = document.createElement(tagName) as T;
+        element.src = src;
+
+        if ("controls" in element) {
+            (element as HTMLMediaElement).controls = true;
+        }
+
+        return element;
     }
 }

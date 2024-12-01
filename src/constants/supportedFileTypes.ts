@@ -1,9 +1,10 @@
 import path from "path";
+import * as ebml from "ts-ebml";
 
 export const SUPPORTED_FILE_TYPES = {
     images: ["avif", "bmp", "gif", "jpeg", "jpg", "png", "svg", "webp"],
-    audio: ["flac", "m4a", "mp3", "ogg", "wav", "webm", "3gp"],
     video: ["mkv", "mov", "mp4", "ogv", "webm"],
+    audio: ["flac", "m4a", "mp3", "ogg", "wav", "3gp"],
     pdf: ["pdf"],
 };
 
@@ -16,8 +17,8 @@ export enum DISPLAY_TYPE {
 
 const FILE_TYPE_TO_DISPLAY_TYPE: { [key: string]: DISPLAY_TYPE } = {
     images: DISPLAY_TYPE.IMAGE,
-    audio: DISPLAY_TYPE.AUDIO,
     video: DISPLAY_TYPE.VIDEO,
+    audio: DISPLAY_TYPE.AUDIO,
 };
 
 /**

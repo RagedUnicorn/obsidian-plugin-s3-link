@@ -6,51 +6,138 @@
 
 Resources for testing in the test vault are generated with `ffmpeg`
 
+### Generate Audio
+
+Example commands for generating all supported audio file formats with ffmpeg.
+
+#### 3GP
+
+```shell
+ffmpeg -f lavfi -i "sine=frequency=440:duration=10" -f lavfi -i "sine=frequency=554.37:duration=10" -f lavfi -i "sine=frequency=659.25:duration=10" -filter_complex "amix=inputs=3:duration=first" -c:a aac -b:a 64k -f 3gp s3_audio_test_file.3gp
+```
+
+#### Flac
+
+```shell
+ffmpeg -f lavfi -i "sine=frequency=440:duration=10" -f lavfi -i "sine=frequency=554.37:duration=10" -f lavfi -i "sine=frequency=659.25:duration=10" -filter_complex "amix=inputs=3:duration=first" -c:a flac s3_audio_test_file.flac
+```
+
+#### M4A(AAC)
+
+```shell
+ffmpeg -f lavfi -i "sine=frequency=440:duration=10" -f lavfi -i "sine=frequency=554.37:duration=10" -f lavfi -i "sine=frequency=659.25:duration=10" -filter_complex "amix=inputs=3:duration=first" -c:a aac -b:a 192k s3_audio_test_file.m4a
+```
+
+#### MP3
+
+```shell
+ffmpeg -f lavfi -i "sine=frequency=440:duration=10" -f lavfi -i "sine=frequency=554.37:duration=10" -f lavfi -i "sine=frequency=659.25:duration=10" -filter_complex "amix=inputs=3:duration=first" -c:a libmp3lame -b:a 192k s3_audio_test_file.mp3
+```
+
+#### OGG
+
+```shell
+ffmpeg -f lavfi -i "sine=frequency=440:duration=10" -f lavfi -i "sine=frequency=554.37:duration=10" -f lavfi -i "sine=frequency=659.25:duration=10" -filter_complex "amix=inputs=3:duration=first" -c:a libvorbis -b:a 192k s3_audio_test_file.ogg
+```
+
+#### WAV
+
+```shell
+ffmpeg -f lavfi -i "sine=frequency=440:duration=10" -f lavfi -i "sine=frequency=554.37:duration=10" -f lavfi -i "sine=frequency=659.25:duration=10" -filter_complex "amix=inputs=3:duration=first" -c:a pcm_s16le s3_audio_test_file.wav
+```
+
+#### WebM
+
+```shell
+ffmpeg -f lavfi -i "sine=frequency=440:duration=10" -f lavfi -i "sine=frequency=554.37:duration=10" -f lavfi -i "sine=frequency=659.25:duration=10" -filter_complex "amix=inputs=3:duration=first" -c:a libopus -b:a 192k s3_audio_test_file.webm
+```
+
 ### Generate Images
 
-#### PNG
+Example commands for generating all supported image file formats with ffmpeg.
 
-##### HTML Embed Test PNG
+#### AVIF
 
 ```shell
-ffmpeg -f lavfi -i color=c=white:s=1280x720 -vf "drawtext=text='S3-Image HTML Embed PNG Test 1':fontcolor=black:fontsize=72:x=(w-text_w)/2:y=(h-text_h)/2" -frames:v 1 s3_image_html_embed_test_png_1.png
+ffmpeg -f lavfi -i color=c=white:s=1280x720 -vf "drawtext=text='S3-Image Test File AVIF':fontcolor=black:fontsize=72:x=(w-text_w)/2:y=(h-text_h)/2" -frames:v 1 -c:v libaom-av1 s3_image_test_file.avif
 ```
 
-##### Obsidian Embed Test PNG
+#### BMP
 
 ```shell
-ffmpeg -f lavfi -i color=c=white:s=1280x720 -vf "drawtext=text='S3-Image Obsidian Embed PNG Test 1':fontcolor=black:fontsize=72:x=(w-text_w)/2:y=(h-text_h)/2" -frames:v 1 s3_image_obsidian_embed_test_png_1.png
+ffmpeg -f lavfi -i color=c=white:s=1280x720 -vf "drawtext=text='S3-Image Test File BMP':fontcolor=black:fontsize=72:x=(w-text_w)/2:y=(h-text_h)/2" -frames:v 1 s3_image_test_file.bmp
 ```
 
-##### Obsidian File Embed Test
+#### GIF
 
 ```shell
-ffmpeg -f lavfi -i color=c=white:s=1280x720 -vf "drawtext=text='S3-Image Obsidian File Embed PNG Test 1':fontcolor=black:fontsize=72:x=(w-text_w)/2:y=(h-text_h)/2" -frames:v 1 s3_image_obsidian_file_embed_test_png_1.png
+ffmpeg -f lavfi -i color=c=white:s=1280x720 -vf "drawtext=text='S3-Image Test File GIF':fontcolor=black:fontsize=72:x=(w-text_w)/2:y=(h-text_h)/2" -frames:v 1 s3_image_test_file.gif
+```
+
+#### JPEG
+
+```shell
+ffmpeg -f lavfi -i color=c=white:s=1280x720 -vf "drawtext=text='S3-Image Test File JPEG':fontcolor=black:fontsize=72:x=(w-text_w)/2:y=(h-text_h)/2" -frames:v 1 s3_image_test_file.jpeg
 ```
 
 #### JPG
 
-##### HTML Embed Test JPG
-
 ```shell
-ffmpeg -f lavfi -i color=c=white:s=1280x720 -vf "drawtext=text='S3-Image HTML Embed JPG Test 1':fontcolor=black:fontsize=72:x=(w-text_w)/2:y=(h-text_h)/2" -frames:v 1 s3_image_html_embed_test_jpg_1.jpg
+ffmpeg -f lavfi -i color=c=white:s=1280x720 -vf "drawtext=text='S3-Image Test File JPG':fontcolor=black:fontsize=72:x=(w-text_w)/2:y=(h-text_h)/2" -frames:v 1 s3_image_test_file.jpg
 ```
 
-##### Obsidian Embed Test JPG
+#### PNG
 
 ```shell
-ffmpeg -f lavfi -i color=c=white:s=1280x720 -vf "drawtext=text='S3-Image Obsidian Embed JPG Test 1':fontcolor=black:fontsize=72:x=(w-text_w)/2:y=(h-text_h)/2" -frames:v 1 s3_image_obsidian_embed_test_jpg_1.jpg
+ffmpeg -f lavfi -i color=c=white:s=1280x720 -vf "drawtext=text='S3-Image Test File PNG':fontcolor=black:fontsize=72:x=(w-text_w)/2:y=(h-text_h)/2" -frames:v 1 s3_image_test_file.png
 ```
 
-##### Obsidian File Embed Test JPG
+#### SVG
 
 ```shell
-ffmpeg -f lavfi -i color=c=white:s=1280x720 -vf "drawtext=text='S3-Image Obsidian File Embed JPG Test 1':fontcolor=black:fontsize=72:x=(w-text_w)/2:y=(h-text_h)/2" -frames:v 1 s3_image_obsidian_file_embed_test_jpg_1.jpg
+ffmpeg -f lavfi -i color=c=white:s=1280x720 -vf "drawtext=text='S3-Image Test File SVG':fontcolor=black:fontsize=72:x=(w-text_w)/2:y=(h-text_h)/2" -frames:v 1 s3_image_test_file.png
+magick s3_image_test_file.png s3_image_test_file.svg
 ```
 
-#### Generate Audio files
+#### WEBP
 
-TODO
+```shell
+ffmpeg -f lavfi -i color=c=white:s=1280x720 -vf "drawtext=text='S3-Image Test File WEBP':fontcolor=black:fontsize=72:x=(w-text_w)/2:y=(h-text_h)/2" -frames:v 1 -c:v libwebp -q:v 75 s3_image_test_file.webp
+```
+
+### Generate Video
+
+Example commands for generating all supported video file formats with ffmpeg.
+
+#### MKV
+
+```shell
+ffmpeg -f lavfi -i color=c=white:s=1280x720:d=10 -f lavfi -i "sine=frequency=440:duration=10" -f lavfi -i "sine=frequency=554.37:duration=10" -f lavfi -i "sine=frequency=659.25:duration=10" -filter_complex "[1][2][3]amix=inputs=3:duration=first,volume=3[audio];[0]drawtext=text='S3-Video Test File MKV':fontcolor=black:fontsize=72:x=(w-text_w)/2:y=(h-text_h)/2[v]" -map "[v]" -map "[audio]" -c:v libx264 -c:a aac -b:a 192k s3_video_test_file.mkv
+```
+
+#### MOV
+
+```shell
+ffmpeg -f lavfi -i color=c=white:s=1280x720:d=10 -f lavfi -i "sine=frequency=440:duration=10" -f lavfi -i "sine=frequency=554.37:duration=10" -f lavfi -i "sine=frequency=659.25:duration=10" -filter_complex "[1][2][3]amix=inputs=3:duration=first,volume=3[audio];[0]drawtext=text='S3-Video Test File MOV':fontcolor=black:fontsize=72:x=(w-text_w)/2:y=(h-text_h)/2[v]" -map "[v]" -map "[audio]" -c:v libx264 -c:a aac -b:a 192k s3_video_test_file.mov
+```
+
+#### MP4
+
+```shell
+ffmpeg -f lavfi -i color=c=white:s=1280x720:d=10 -f lavfi -i "sine=frequency=440:duration=10" -f lavfi -i "sine=frequency=554.37:duration=10" -f lavfi -i "sine=frequency=659.25:duration=10" -filter_complex "[1][2][3]amix=inputs=3:duration=first,volume=3[audio];[0]drawtext=text='S3-Video Test File MP4':fontcolor=black:fontsize=72:x=(w-text_w)/2:y=(h-text_h)/2[v]" -map "[v]" -map "[audio]" -c:v libx264 -c:a aac -b:a 192k s3_video_test_file.mp4
+```
+
+#### OGV
+
+```shell
+ffmpeg -f lavfi -i color=c=white:s=1280x720:d=10 -f lavfi -i "sine=frequency=440:duration=10" -f lavfi -i "sine=frequency=554.37:duration=10" -f lavfi -i "sine=frequency=659.25:duration=10" -filter_complex "[1][2][3]amix=inputs=3:duration=first,volume=3[audio];[0]drawtext=text='S3-Video Test File OGV':fontcolor=black:fontsize=72:x=(w-text_w)/2:y=(h-text_h)/2[v]" -map "[v]" -map "[audio]" -c:v libtheora -c:a libvorbis -b:a 192k s3_video_test_file.ogv
+```
+
+#### WEBM
+
+```shell
+ffmpeg -f lavfi -i color=c=white:s=1280x720:d=10 -f lavfi -i "sine=frequency=440:duration=10" -f lavfi -i "sine=frequency=554.37:duration=10" -f lavfi -i "sine=frequency=659.25:duration=10" -filter_complex "[1][2][3]amix=inputs=3:duration=first,volume=3[audio];[0]drawtext=text='S3-Video Test File WEBM':fontcolor=black:fontsize=72:x=(w-text_w)/2:y=(h-text_h)/2[v]" -map "[v]" -map "[audio]" -c:v libvpx -c:a libvorbis -b:a 192k s3_video_test_file.webm
+```
 
 ## License
 
