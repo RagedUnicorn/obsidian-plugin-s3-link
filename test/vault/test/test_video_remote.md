@@ -11,7 +11,7 @@ tags:
 
 #### MKV HTML Embed
 
-<video src="s3-sign:videos/s3_video_html_embed_test_mkv.mkv">
+<video src="s3-sign:videos/s3_video_html_embed_test_mkv.mkv" />
 
 #### MKV Obsidian File Embed
 
@@ -21,7 +21,7 @@ tags:
 
 #### MOV HTML Embed
 
-<video src="s3-sign:videos/s3_video_html_embed_test_mov.mov">
+<video src="s3-sign:videos/s3_video_html_embed_test_mov.mov" />
 
 #### MOV Obsidian File Embed
 
@@ -31,7 +31,7 @@ tags:
 
 #### MP4 HTML Embed
 
-<video src="s3-sign:videos/s3_video_html_embed_test_mp4.mp4">
+<video src="s3-sign:videos/s3_video_html_embed_test_mp4.mp4" />
 
 #### MP4 Obsidian File Embed
 
@@ -41,7 +41,7 @@ tags:
 
 #### OGV HTML Embed
 
-<video src="s3-sign:videos/s3_video_html_embed_test_ogv.ogv">
+<video src="s3-sign:videos/s3_video_html_embed_test_ogv.ogv" />
 
 #### OGV Obsidian File Embed
 
@@ -51,7 +51,7 @@ tags:
 
 #### WEBM HTML Embed
 
-<video src="s3-sign:videos/s3_video_html_embed_test_webm.webm">
+<video src="s3-sign:videos/s3_video_html_embed_test_webm.webm" />
 
 #### WEBM Obsidian File Embed
 

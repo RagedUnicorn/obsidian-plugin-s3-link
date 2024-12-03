@@ -118,5 +118,3 @@ tags:
 #### WEBP Obsidian File Embed
 
 ![[s3:images/s3_image_obsidian_file_embed_test_webp.webp]]
-
----

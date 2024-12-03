@@ -11,7 +11,7 @@ tags:
 
 #### 3GP HTML Embed
 
-<audio src="s3:audio/s3_audio_html_embed_test_3gp.3gp">
+<audio src="s3:audio/s3_audio_html_embed_test_3gp.3gp" />
 
 #### 3GP Obsidian File Embed
 
@@ -21,7 +21,7 @@ tags:
 
 #### FLAC HTML Embed
 
-<audio src="s3:audio/s3_audio_html_embed_test_flac.flac">
+<audio src="s3:audio/s3_audio_html_embed_test_flac.flac" />
 
 #### FLAC Obsidian File Embed
 
@@ -31,7 +31,7 @@ tags:
 
 #### M4A HTML Embed
 
-<audio src="s3:audio/s3_audio_html_embed_test_m4a.m4a">
+<audio src="s3:audio/s3_audio_html_embed_test_m4a.m4a" />
 
 #### M4A Obsidian File Embed
 
@@ -41,7 +41,7 @@ tags:
 
 #### MP3 HTML Embed
 
-<audio src="s3:audio/s3_audio_html_embed_test_mp3.mp3">
+<audio src="s3:audio/s3_audio_html_embed_test_mp3.mp3" />
 
 #### MP3 Obsidian File Embed
 
@@ -51,7 +51,7 @@ tags:
 
 #### OGG HTML Embed
 
-<audio src="s3:audio/s3_audio_html_embed_test_ogg.ogg">
+<audio src="s3:audio/s3_audio_html_embed_test_ogg.ogg" />
 
 #### OGG Obsidian File Embed
 
@@ -61,7 +61,7 @@ tags:
 
 #### WAV HTML Embed
 
-<audio src="s3:audio/s3_audio_html_embed_test_wav.wav">
+<audio src="s3:audio/s3_audio_html_embed_test_wav.wav" />
 
 #### WAV Obsidian File Embed
 
@@ -71,7 +71,7 @@ tags:
 
 #### WEBM HTML Embed
 
-<audio src="s3:audio/s3_audio_html_embed_test_webm.webm">
+<audio src="s3:audio/s3_audio_html_embed_test_webm.webm" />
 
 #### WEBM Obsidian File Embed
 
