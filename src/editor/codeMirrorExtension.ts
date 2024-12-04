@@ -35,7 +35,6 @@ export default class CodeMirrorExtension {
         this.imageResolver = new ImageResolver();
         this.videoResolver = new VideoResolver();
         this.AudioResolver = new AudioResolver();
-        // TODO did not import span embed resolver on purpose
         this.DivEmbedResolver = new DivEmbedResolver();
 
         console.info(
@@ -76,7 +75,7 @@ export default class CodeMirrorExtension {
                         console.debug(
                             `${moduleName}::mutationObserver - New nodes added to the DOM`
                         );
-                        this.updateView(view);
+                        updateView(view);
                     }
                 });
             });
