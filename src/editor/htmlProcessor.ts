@@ -14,6 +14,11 @@ import {
     getDisplayTypeByObjectKey,
 } from "../constants/supportedFileTypes";
 
+type HTMLElementWithSource =
+    | HTMLImageElement
+    | HTMLVideoElement
+    | HTMLAudioElement;
+
 export default class HtmlProcessor {
     private readonly moduleName = "HtmlProcessor";
 
@@ -26,7 +31,6 @@ export default class HtmlProcessor {
     /**
      * Set up event listeners to receive processed links. Processed links are links that
      * where resolved to their respective signed s3 or file s3 links.
-     *
      */
     private setupEventListeners() {
         emitter.on(EVENT_SIGN_LINK_PROCESSED, ({ elements, s3SignedLink }) => {
@@ -35,7 +39,11 @@ export default class HtmlProcessor {
                 elements,
                 s3SignedLink
             );
-            this.updateSignedLinkReferences(elements, s3SignedLink);
+            this.processElements(
+                elements,
+                s3SignedLink,
+                this.updateElementSignedLink.bind(this)
+            );
         });
 
         emitter.on(EVENT_FILE_LINK_PROCESSED, ({ elements, s3FileLink }) => {
@@ -44,7 +52,11 @@ export default class HtmlProcessor {
                 elements,
                 s3FileLink
             );
-            this.updateFileLinkReferences(elements, s3FileLink);
+            this.processElements(
+                elements,
+                s3FileLink,
+                this.updateElementFileLink.bind(this)
+            );
         });
 
         console.info(
@@ -53,27 +65,26 @@ export default class HtmlProcessor {
     }
 
     /**
-     * Update file link references for a list of HTML elements.
+     * Process all elements that have been resolved to a signed s3 link.
      *
-     * @param elements - Array of HTML elements to update.
-     * @param s3FileLink - The S3 file link object.
+     * @param elements - The elements to process.
+     * @param link - The signed s3 link.
+     * @param updater - The function to update the element.
      */
-    public updateFileLinkReferences(
+    private processElements(
         elements: HTMLElement[],
-        s3FileLink: S3FileLink
+        link: S3FileLink | S3SignedLink,
+        updater: (
+            htmlElement: HTMLElement,
+            link: S3SignedLink | S3FileLink
+        ) => Promise<void> | void
     ) {
-        console.debug(
-            `${this.moduleName}::updateFileLinkReferences - Updating file link references`,
-            s3FileLink,
-            elements
-        );
-
-        elements.forEach((htmlElement) => {
+        elements.forEach(async (htmlElement) => {
             try {
-                this.updateElementFileLink(htmlElement, s3FileLink);
+                await updater(htmlElement, link);
             } catch (error) {
                 console.error(
-                    `${this.moduleName}::updateFileLinkReferences - Error updating element`,
+                    `${this.moduleName}::processElements - Error processing element`,
                     htmlElement,
                     error
                 );
@@ -82,273 +93,196 @@ export default class HtmlProcessor {
     }
 
     /**
-     * Update a single HTML element's file link reference.
+     * Update the source of the given HTML element to the given s3 file link.
      *
      * @param htmlElement - The HTML element to update.
-     * @param s3FileLink - The S3 file link object.
+     * @param s3FileLink - The s3 file link to update the element with.
      */
     private async updateElementFileLink(
         htmlElement: HTMLElement,
         s3FileLink: S3FileLink
     ) {
-        let source = await this.fileCache.getFileFromCacheFolder(s3FileLink);
-
         if (this.isElementProcessed(htmlElement)) return;
-
-        if (htmlElement instanceof HTMLImageElement) {
-            this.updateImageElement(htmlElement, source);
-        } else if (htmlElement instanceof HTMLVideoElement) {
-            this.updateVideoElement(htmlElement, source);
-        } else if (htmlElement instanceof HTMLAudioElement) {
-            this.updateAudioElement(htmlElement, source);
-        } else if (htmlElement instanceof HTMLSpanElement) {
-            this.updateSpanElement(htmlElement, source, s3FileLink.objectKey);
-        } else if (htmlElement instanceof HTMLDivElement) {
-            this.updateDivElement(htmlElement, source);
-        } else {
-            throw new Error(`Unsupported HTML element: ${htmlElement.tagName}`);
-        }
-
-        // Add custom attribute to the element for tracking
-        htmlElement.setAttribute(
-            Config.S3_LINK_PLUGIN_DATA_ATTRIBUTE,
+        const source = await this.fileCache.getFileFromCacheFolder(s3FileLink);
+        this.updateElement(htmlElement, source, s3FileLink.objectKey);
+        this.markElementAsProcessed(
+            htmlElement,
             `${Config.S3_FILE_LINK_PREFIX}/${s3FileLink.objectKey}`
         );
-
-        this.markElementAsProcessed(htmlElement);
     }
 
     /**
-     * Update signed link references for a list of HTML elements.
-     *
-     * @param elements - Array of HTML elements to update.
-     * @param s3SignedLink - The S3 signed link object.
-     */
-    public updateSignedLinkReferences(
-        elements: HTMLElement[],
-        s3SignedLink: S3SignedLink
-    ) {
-        console.debug(
-            "updateSignedLinkReferences - Updating signed link references",
-            s3SignedLink,
-            elements
-        );
-
-        elements.forEach((htmlElement) => {
-            try {
-                this.updateElementSignedLink(htmlElement, s3SignedLink);
-            } catch (error) {
-                console.error(
-                    "updateSignedLinkReferences - Error updating element",
-                    htmlElement,
-                    error
-                );
-            }
-        });
-    }
-
-    /**
-     * Update a single HTML element's signed link reference.
+     * Update the source of the given HTML element to the given signed s3 link.
      *
      * @param htmlElement - The HTML element to update.
-     * @param s3SignedLink - The S3 signed link object.
+     * @param s3SignedLink - The signed s3 link to update the element with.
      */
     private updateElementSignedLink(
         htmlElement: HTMLElement,
         s3SignedLink: S3SignedLink
     ) {
         if (this.isElementProcessed(htmlElement)) return;
-
-        if (htmlElement instanceof HTMLImageElement) {
-            this.updateImageElement(htmlElement, s3SignedLink.signedUrl);
-        } else if (htmlElement instanceof HTMLVideoElement) {
-            this.updateVideoElement(htmlElement, s3SignedLink.signedUrl);
-        } else if (htmlElement instanceof HTMLAudioElement) {
-            this.updateAudioElement(htmlElement, s3SignedLink.signedUrl);
-        } else if (htmlElement instanceof HTMLSpanElement) {
-            this.updateSpanElement(
-                htmlElement,
-                s3SignedLink.signedUrl,
-                s3SignedLink.objectKey
-            );
-        } else if (htmlElement instanceof HTMLDivElement) {
-            this.updateDivElement(htmlElement, s3SignedLink.signedUrl);
-        } else {
-            throw new Error(`Unsupported HTML element: ${htmlElement.tagName}`);
-        }
-
-        // Add custom attribute to the element for tracking
-        htmlElement.setAttribute(
-            Config.S3_LINK_PLUGIN_DATA_ATTRIBUTE,
+        this.updateElement(
+            htmlElement,
+            s3SignedLink.signedUrl,
+            s3SignedLink.objectKey
+        );
+        this.markElementAsProcessed(
+            htmlElement,
             `${Config.S3_SIGNED_LINK_PREFIX}/${s3SignedLink.objectKey}`
         );
-
-        this.markElementAsProcessed(htmlElement);
     }
 
     /**
-     * Update the src reference for an HTMLImageElement.
+     * Update the source of the given HTML element to the given source.
      *
-     * @param imageElement - The HTMLImageElement to update.
-     * @param source - Resource path to the file or an S3 signed link.
+     * @param htmlElement - The HTML element to update.
+     * @param source - The source to update the element with.
+     * @param objectKey - The object key of the source.
      */
-    private updateImageElement(imageElement: HTMLImageElement, source: string) {
-        imageElement.src = source;
+    private updateElement(
+        htmlElement: HTMLElement,
+        source: string,
+        objectKey: string
+    ) {
+        if (htmlElement instanceof HTMLImageElement) {
+            this.updateMediaElement(htmlElement, source);
+        } else if (
+            htmlElement instanceof HTMLVideoElement ||
+            htmlElement instanceof HTMLAudioElement
+        ) {
+            this.updateMediaElement(htmlElement, source, true);
+        } else if (htmlElement instanceof HTMLSpanElement) {
+            this.updateSpanElement(htmlElement, source, objectKey);
+        } else if (htmlElement instanceof HTMLDivElement) {
+            this.updateDivElement(htmlElement, source, objectKey);
+        } else {
+            throw new Error(
+                `Unsupported HTML element: ${
+                    (htmlElement as HTMLElement).tagName
+                }`
+            );
+        }
     }
 
     /**
-     * Update the src reference for an HTMLVideoElement.
-     *
-     * @param videoElement - The HTMLVideoElement to update.
-     * @param source - Resource path to the file or an S3 signed link.
+     * Update the source of the given media element to the given source.
+     * @param element - The media element to update.
+     * @param source - The source to update the element with.
+     * @param withControls - Whether to add controls to the media element.
      */
-    private updateVideoElement(videoElement: HTMLVideoElement, source: string) {
-        videoElement.src = source;
-        videoElement.controls = true;
-        videoElement.autoplay = false; // Ensure autoplay is disabled for videos
+    private updateMediaElement(
+        element: HTMLImageElement | HTMLVideoElement | HTMLAudioElement,
+        source: string,
+        withControls: boolean = false
+    ) {
+        element.src = source;
+        if (
+            withControls &&
+            (element instanceof HTMLVideoElement ||
+                element instanceof HTMLAudioElement)
+        ) {
+            element.controls = true;
+            element.autoplay = false;
+        }
     }
 
-    /**
-     * Update the src reference for an HTMLAudioElement.
-     *
-     * @param audioElement - The HTMLAudioElement to update.
-     * @param source - Resource path to the file or an S3 signed link.
-     */
-    private updateAudioElement(audioElement: HTMLAudioElement, source: string) {
-        audioElement.src = source;
-        audioElement.controls = true;
-        audioElement.autoplay = false; // Ensure autoplay is disabled for audio
-    }
-
-    /**
-     * Update the span element with the new source.
-     *
-     * @param spanElement - The HTMLSpanElement to update.
-     * @param source - Resource path to the file or an S3 signed link.
-     */
     private updateSpanElement(
         spanElement: HTMLSpanElement,
         source: string,
         objectKey: string
     ) {
         const displayType = getDisplayTypeByObjectKey(objectKey);
+        const newElement = this.createMediaElementFromDisplayType(
+            displayType,
+            source,
+            objectKey
+        );
 
+        if (newElement) {
+            spanElement.replaceWith(newElement);
+        } else {
+            console.error(
+                `${this.moduleName}::updateSpanElement - Invalid display type`,
+                objectKey
+            );
+        }
+    }
+
+    private updateDivElement(
+        divElement: HTMLDivElement,
+        source: string,
+        objectKey: string
+    ) {
+        const displayType = getDisplayTypeByObjectKey(objectKey);
+        const newElement = this.createMediaElementFromDisplayType(
+            displayType,
+            source,
+            objectKey
+        );
+
+        if (newElement) {
+            divElement.textContent = "";
+            divElement.setAttribute(
+                "class",
+                `internal-embed media-embed ${displayType.toLowerCase()}-embed is-loaded`
+            );
+            divElement.appendChild(newElement);
+        } else {
+            console.error(
+                `${this.moduleName}::updateDivElement - Invalid display type`,
+                objectKey
+            );
+        }
+    }
+
+    private createMediaElementFromDisplayType(
+        displayType: DISPLAY_TYPE,
+        source: string,
+        objectKey: string
+    ): HTMLElementWithSource | null {
         switch (displayType) {
-            case DISPLAY_TYPE.IMAGE: {
-                const imageTag = this.createMediaElement<HTMLImageElement>(
-                    "img",
+            case DISPLAY_TYPE.IMAGE:
+                return this.createMediaElement<HTMLImageElement>("img", source);
+            case DISPLAY_TYPE.VIDEO:
+                if (objectKey.endsWith(".webm")) {
+                    return this.createWebmMediaElement(source);
+                }
+                return this.createMediaElement<HTMLVideoElement>(
+                    "video",
                     source
                 );
-                spanElement.replaceWith(imageTag);
+            case DISPLAY_TYPE.AUDIO:
+                return this.createMediaElement<HTMLAudioElement>(
+                    "audio",
+                    source
+                );
+            case DISPLAY_TYPE.INVALID:
+                console.error(
+                    `${this.moduleName}::createMediaElementFromDisplayType - Invalid display type`,
+                    objectKey
+                );
+                return null;
+        }
+    }
 
-                break;
-            }
-            case DISPLAY_TYPE.VIDEO: {
-                if (objectKey.endsWith(".webm")) {
-                    console.debug(
-                        `${this.moduleName}::updateSpanElement - WebM file detected`
-                    );
-
-                    const videoTag = this.createMediaElement<HTMLVideoElement>(
-                        "video",
-                        source
-                    );
-
-                    videoTag.onloadedmetadata = () => {
-                        if (videoTag.videoWidth > 0) {
-                            console.debug(
-                                `${this.moduleName}::updateSpanElement - WebM file detected as Video file.`
-                            );
-
-                            spanElement.replaceWith(videoTag);
-                        } else {
-                            console.debug(
-                                `${this.moduleName}::updateSpanElement - WebM file detected as Audio file.`
-                            );
-
-                            const audioTag =
-                                this.createMediaElement<HTMLAudioElement>(
-                                    "audio",
-                                    source
-                                );
-                            spanElement.replaceWith(audioTag);
-                        }
-                    };
-                } else {
-                    const videoTag = this.createMediaElement<HTMLVideoElement>(
-                        "video",
-                        source
-                    );
-                    spanElement.replaceWith(videoTag);
-                }
-
-                break;
-            }
-            case DISPLAY_TYPE.AUDIO: {
+    private createWebmMediaElement(
+        source: string
+    ): HTMLVideoElement | HTMLAudioElement {
+        const videoTag = this.createMediaElement<HTMLVideoElement>(
+            "video",
+            source
+        );
+        videoTag.onloadedmetadata = () => {
+            if (videoTag.videoWidth === 0) {
                 const audioTag = this.createMediaElement<HTMLAudioElement>(
                     "audio",
                     source
                 );
-                spanElement.replaceWith(audioTag);
-
-                break;
+                videoTag.replaceWith(audioTag);
             }
-            case DISPLAY_TYPE.INVALID:
-                console.error(
-                    `${this.moduleName}::updateSpanElement - Invalid display type`,
-                    objectKey
-                );
-
-                break;
-        }
-    }
-
-    /**
-     * Update the div element with the new source.
-     *
-     * TODO this is used by codemirror TODO not yet working
-     *
-     * @param divElement - The HTMLDivElement to update.
-     * @param source - Resource path to the file or an S3 signed link.
-     */
-    private updateDivElement(divElement: HTMLDivElement, source: string) {
-        if (this.isElementProcessed(divElement)) return;
-
-        // TODO it depends on the source what kind of element we need to generate
-        // it could also be that we want to display an audio file
-        console.error("updateDivElement", divElement);
-        // divElement.setAttribute("src", "processed"); // this is key TODO if we don't set this, the div will be processed again creating a loop
-        // the same might be required in other places TODO
-        const videoTag = document.createElement("video");
-        videoTag.src = source;
-        videoTag.controls = true;
-        videoTag.autoplay = false;
-
-        // removing the obsidian file not found message
-        while (divElement.firstChild) {
-            divElement.removeChild(divElement.firstChild);
-        }
-        // Replace the original embed with the new video tag
-        divElement.appendChild(videoTag);
-        // TODO not yet sure how this works if I change the element
-        this.markElementAsProcessed(divElement);
-    }
-
-    /**
-     * Check if an element has already been processed by the plugin.
-     * @param element - The HTML element to check.
-     * @returns True if the element has been processed, false otherwise.
-     */
-    private isElementProcessed(element: HTMLElement): boolean {
-        return element.hasAttribute(Config.S3_PLUGIN_PROCESSED);
-    }
-
-    /**
-     * Mark an element as processed by the plugin.
-     * @param element - The HTML element to mark as processed.
-     */
-    private markElementAsProcessed(element: HTMLElement) {
-        element.setAttribute(Config.S3_PLUGIN_PROCESSED, "true");
+        };
+        return videoTag;
     }
 
     /**
@@ -359,7 +293,7 @@ export default class HtmlProcessor {
      *
      * @returns The created media element.
      */
-    private createMediaElement<T extends HTMLMediaElement | HTMLImageElement>(
+    private createMediaElement<T extends HTMLElementWithSource>(
         tagName: string,
         src: string
     ): T {
@@ -371,5 +305,26 @@ export default class HtmlProcessor {
         }
 
         return element;
+    }
+
+    /**
+     * Check if an element has already been processed by the plugin.
+     * @param element - The HTML element to check.
+     * @returns True if the element has been processed, false otherwise.
+     */
+    private isElementProcessed(element: HTMLElement): boolean {
+        return element.hasAttribute(Config.S3_PLUGIN_PROCESSED);
+    }
+
+    // TODO
+    private markElementAsProcessed(
+        element: HTMLElement,
+        attributeValue: string
+    ) {
+        element.setAttribute(Config.S3_PLUGIN_PROCESSED, "true");
+        element.setAttribute(
+            Config.S3_LINK_PLUGIN_DATA_ATTRIBUTE,
+            attributeValue
+        );
     }
 }
