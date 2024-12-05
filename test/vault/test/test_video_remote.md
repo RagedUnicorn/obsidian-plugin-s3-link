@@ -15,7 +15,7 @@ tags:
 
 #### MKV Obsidian File Embed
 
-![[s3:videos/s3_video_obsidian_file_embed_test_mkv.mkv]]
+![[s3-sign:videos/s3_video_obsidian_file_embed_test_mkv.mkv]]
 
 ### MOV
 
@@ -25,7 +25,7 @@ tags:
 
 #### MOV Obsidian File Embed
 
-![[s3:videos/s3_video_obsidian_file_embed_test_mov.mov]]
+![[s3-sign:videos/s3_video_obsidian_file_embed_test_mov.mov]]
 
 ### MP4
 
@@ -35,7 +35,7 @@ tags:
 
 #### MP4 Obsidian File Embed
 
-![[s3:videos/s3_video_obsidian_file_embed_test_mp4.mp4]]
+![[s3-sign:videos/s3_video_obsidian_file_embed_test_mp4.mp4]]
 
 ### OGV
 
@@ -45,7 +45,7 @@ tags:
 
 #### OGV Obsidian File Embed
 
-![[s3:videos/s3_video_obsidian_file_embed_test_ogv.ogv]]
+![[s3-sign:videos/s3_video_obsidian_file_embed_test_ogv.ogv]]
 
 ### WEBM
 
@@ -55,4 +55,4 @@ tags:
 
 #### WEBM Obsidian File Embed
 
-![[s3:videos/s3_video_obsidian_file_embed_test_webm.webm]]
+![[s3-sign:videos/s3_video_obsidian_file_embed_test_webm.webm]]
