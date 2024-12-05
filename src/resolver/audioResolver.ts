@@ -32,36 +32,28 @@ export default class AudioResolver extends Resolver {
 
         if (audioElements.length == 0) {
             console.debug(
-                `${this.moduleName}::resolveHtmlElement - Rendered markdown content does not contain any audio tags, aborting...`
+                `${this.moduleName}::resolveHtmlElement - Rendered markdown content does not contain any audio tags`
             );
-
-            return {
-                objectKeys: this.objectKeys,
-                signObjectKeys: this.signObjectKeys,
-            };
         }
 
         audioElements.forEach((audioElement) => {
             const parts = audioElement.src.split(Config.S3_LINK_SPLITTER);
+            const linkPrefix = parts[this.s3LinkLeftPart];
+            const objectKey = parts[this.s3LinkRightPart];
 
-            if (parts[this.s3LinkLeftPart] == Config.S3_FILE_LINK_PREFIX) {
-                console.debug(
-                    `${this.moduleName}::resolveHtmlElement - AudioResolver found link:`,
-                    audioElement.src
+            if (linkPrefix === Config.S3_FILE_LINK_PREFIX) {
+                this.processValidObjectKey(
+                    this.moduleName,
+                    objectKey,
+                    audioElement,
+                    false
                 );
-
-                this.addObjectKey(parts[this.s3LinkRightPart], audioElement);
-            } else if (
-                parts[this.s3LinkLeftPart] == Config.S3_SIGNED_LINK_PREFIX
-            ) {
-                console.debug(
-                    `${this.moduleName}::resolveHtmlElement - AudioResolver found sign link:`,
-                    audioElement.src
-                );
-
-                this.addSignObjectKey(
-                    parts[this.s3LinkRightPart],
-                    audioElement
+            } else if (linkPrefix === Config.S3_SIGNED_LINK_PREFIX) {
+                this.processValidObjectKey(
+                    this.moduleName,
+                    objectKey,
+                    audioElement,
+                    true
                 );
             }
         });

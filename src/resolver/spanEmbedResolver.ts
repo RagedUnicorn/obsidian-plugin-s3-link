@@ -35,11 +35,6 @@ export default class SpanEmbedResolver extends Resolver {
             console.debug(
                 `${this.moduleName}::resolveHtmlElement - Rendered markdown content does not contain any span embed tags, aborting...`
             );
-
-            return {
-                objectKeys: this.objectKeys,
-                signObjectKeys: this.signObjectKeys,
-            };
         }
 
         spanEmbedElements.forEach((spanEmbedElement) => {
@@ -47,28 +42,22 @@ export default class SpanEmbedResolver extends Resolver {
 
             if (src) {
                 const parts = src.split(Config.S3_LINK_SPLITTER);
+                const linkPrefix = parts[this.s3LinkLeftPart];
+                const objectKey = parts[this.s3LinkRightPart];
 
-                if (parts[this.s3LinkLeftPart] == Config.S3_FILE_LINK_PREFIX) {
-                    console.debug(
-                        `${this.moduleName} - SpanResolver found link:`,
-                        src
+                if (linkPrefix === Config.S3_FILE_LINK_PREFIX) {
+                    this.processValidObjectKey(
+                        this.moduleName,
+                        objectKey,
+                        spanEmbedElement,
+                        false
                     );
-
-                    this.addObjectKey(
-                        parts[this.s3LinkRightPart],
-                        spanEmbedElement
-                    );
-                } else if (
-                    parts[this.s3LinkLeftPart] == Config.S3_SIGNED_LINK_PREFIX
-                ) {
-                    console.debug(
-                        `${this.moduleName}::resolveHtmlElement - DivResolver found sign link:`,
-                        spanEmbedElement.src
-                    );
-
-                    this.addSignObjectKey(
-                        parts[this.s3LinkRightPart],
-                        spanEmbedElement
+                } else if (linkPrefix === Config.S3_SIGNED_LINK_PREFIX) {
+                    this.processValidObjectKey(
+                        this.moduleName,
+                        objectKey,
+                        spanEmbedElement,
+                        true
                     );
                 }
             }

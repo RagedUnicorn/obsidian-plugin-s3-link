@@ -32,36 +32,28 @@ export default class ImageResolver extends Resolver {
 
         if (imageElements.length == 0) {
             console.debug(
-                `${this.moduleName}::resolveHtmlElement - Rendered markdown content does not contain any image tags, aborting...`
+                `${this.moduleName}::resolveHtmlElement - Rendered markdown content does not contain any image tags`
             );
-
-            return {
-                objectKeys: this.objectKeys,
-                signObjectKeys: this.signObjectKeys,
-            };
         }
 
         imageElements.forEach((imageElement) => {
             const parts = imageElement.src.split(Config.S3_LINK_SPLITTER);
+            const linkPrefix = parts[this.s3LinkLeftPart];
+            const objectKey = parts[this.s3LinkRightPart];
 
-            if (parts[this.s3LinkLeftPart] == Config.S3_FILE_LINK_PREFIX) {
-                console.debug(
-                    `${this.moduleName}::resolveHtmlElement - ImageResolver found link:`,
-                    imageElement.src
+            if (linkPrefix === Config.S3_FILE_LINK_PREFIX) {
+                this.processValidObjectKey(
+                    this.moduleName,
+                    objectKey,
+                    imageElement,
+                    false
                 );
-
-                this.addObjectKey(parts[this.s3LinkRightPart], imageElement);
-            } else if (
-                parts[this.s3LinkLeftPart] == Config.S3_SIGNED_LINK_PREFIX
-            ) {
-                console.debug(
-                    `${this.moduleName}::resolveHtmlElement - ImageResolver found sign link:`,
-                    imageElement.src
-                );
-
-                this.addSignObjectKey(
-                    parts[this.s3LinkRightPart],
-                    imageElement
+            } else if (linkPrefix === Config.S3_SIGNED_LINK_PREFIX) {
+                this.processValidObjectKey(
+                    this.moduleName,
+                    objectKey,
+                    imageElement,
+                    true
                 );
             }
         });

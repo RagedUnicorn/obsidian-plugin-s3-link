@@ -40,4 +40,48 @@ export default abstract class Resolver {
     protected clearSignObjectKeys() {
         this.signObjectKeys.clear();
     }
+
+    /**
+     * Helper function to process a valid object key.
+     *
+     * @param moduleName The name of the current module, used for logging.
+     * @param objectKey The object key to validate
+     * @param htmlElement The HTML element associated with the object key
+     * @param isSigned Whether the key is a signed key
+     */
+    protected processValidObjectKey(
+        moduleName: string,
+        objectKey: string,
+        htmlElement: HTMLElement,
+        isSigned: boolean
+    ): void {
+        if (this.isValidObjectKey(objectKey)) {
+            if (isSigned) {
+                this.addSignObjectKey(objectKey, htmlElement);
+            } else {
+                this.addObjectKey(objectKey, htmlElement);
+            }
+            console.debug(
+                `${moduleName}::processValidObjectKey - Valid ${
+                    isSigned ? "signed" : "regular"
+                } objectKey found:`,
+                objectKey
+            );
+        } else {
+            console.warn(
+                `${moduleName}::processValidObjectKey - Invalid objectKey(ignoring):`,
+                objectKey
+            );
+        }
+    }
+
+    /**
+     * Keys that end with / are S3 Prefixes and not objects. We ignore those.
+     *
+     * @param objectKey
+     * @returns
+     */
+    protected isValidObjectKey(objectKey: string): boolean {
+        return objectKey.length > 0 && !objectKey.endsWith("/");
+    }
 }
