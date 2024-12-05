@@ -29,7 +29,6 @@ export default class MarkdownPostProcessor {
         this.imageResolver = new ImageResolver();
         this.videoResolver = new VideoResolver();
         this.audioResolver = new AudioResolver();
-        // TODO span is only relevant for markdown preview? should not import to code mirror
         this.spanEmbedResolver = new SpanEmbedResolver();
 
         console.info(

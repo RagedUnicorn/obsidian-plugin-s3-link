@@ -13,6 +13,7 @@ export default abstract class Config {
     // s3 file link
     static readonly S3_FILE_LINK_PREFIX = "s3";
     static readonly S3_FILE_LINK_DOWNLOAD_TIMEOUT = 120000; // 2 minutes
+    static readonly S3_FILE_LINK_EXPIRATION_TIME_SECONDS = 60; // 1 minute
     static readonly S3_FILE_LINKS_CACHE_PATH = "s3FileLinks";
     static readonly S3_FILE_LINK_CACHE_FOLDER = "s3_link_cache";
 

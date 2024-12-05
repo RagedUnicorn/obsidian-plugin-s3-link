@@ -157,7 +157,19 @@ export default class LinkProcessor {
                 this.localStorageFileLinkCache.findCachedFileLink(objectKey);
 
             if (cachedFileLink) {
+                if (
+                    this.localStorageFileLinkCache.isS3FileLinkTTLExpired(
+                        cachedFileLink?.lastUpdate
+                    )
+                ) {
+                    // skip retrieving of the newest version id if ttl is not expired
+                    this.emitFileLinkProcessed(cachedFileLink, htmlElements);
+
+                    continue;
+                }
+
                 const versionId = await this.getLatestVersionId(objectKey);
+
                 if (versionId === cachedFileLink.versionId) {
                     console.debug(
                         `${this.moduleName}::processS3FileLinks - Cached file link is up to date`,
@@ -190,6 +202,14 @@ export default class LinkProcessor {
         }
     }
 
+    /**
+     * Process and cache a file link.
+     *
+     * @param objectKey
+     * @param htmlElements
+     *
+     * @returns Promise<void>
+     */
     private async processAndCacheFileLink(
         objectKey: string,
         htmlElements: HTMLElement[]

@@ -76,4 +76,19 @@ export default class LocalStorageFileLinkCache extends LocalStorageCache {
 
         this.removeItemFromLocalStorage(this.cachePath, objectKey);
     }
+
+    /**
+     * Checks if the ttl item of a specific s3FileLink is expired. Expired in this case means
+     * that the versionId is rechecked and if necessary updated.
+     *
+     * @param lastUpdate The lastUpdate timestamp of the cached item
+     *
+     * @returns true if the ttl of the item is expired and needs to be rechecked, false otherwise
+     */
+    public isS3FileLinkTTLExpired(lastUpdate: number): boolean {
+        return (
+            (Date.now() - lastUpdate) / 1000 >
+            Config.S3_FILE_LINK_EXPIRATION_TIME_SECONDS
+        );
+    }
 }
