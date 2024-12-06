@@ -1,6 +1,7 @@
 import {
     S3Client,
     GetObjectCommand,
+    HeadObjectCommand,
     ListObjectVersionsCommand,
     ListObjectVersionsCommandOutput,
 } from "@aws-sdk/client-s3";
@@ -69,6 +70,17 @@ export default class AwsS3Client {
 
         if (!this.awsS3Client) {
             throw new Error("S3Client not initialized");
+        }
+
+        try {
+            await this.getMetadataForObject(objectKey);
+        } catch (error) {
+            console.error(
+                `${this.moduleName} - Error retrieving object metadata`,
+                error
+            );
+
+            throw error;
         }
 
         try {
@@ -226,5 +238,66 @@ export default class AwsS3Client {
                 }
             },
         });
+    }
+
+    /**
+     * Get the metadata for an object in the S3 bucket.
+     *
+     * @param objectKey
+     */
+    private async getMetadataForObject(objectKey: string) {
+        try {
+            const headCommand = new HeadObjectCommand({
+                Bucket: this.pluginSettings.bucketName,
+                Key: objectKey,
+            });
+
+            await this.awsS3Client.send(headCommand);
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    /**
+     * Check if an object exists in the S3 bucket.
+     *
+     * @param objectKey
+     * @returns boolean indicating if the object exists
+     */
+    public async doesFileForObjectKeyExist(
+        objectKey: string
+    ): Promise<boolean> {
+        try {
+            const headCommand = new HeadObjectCommand({
+                Bucket: this.pluginSettings.bucketName,
+                Key: objectKey,
+            });
+
+            await this.awsS3Client.send(headCommand);
+
+            return true;
+        } catch (error: any) {
+            if (
+                error?.$metadata?.httpStatusCode === 404 ||
+                error.name === "NotFound"
+            ) {
+                // Object does not exist
+                return false;
+            } else if (error.$metadata?.httpStatusCode === 403) {
+                // Possible lack of permissions
+                console.error(
+                    `Permission issue accessing S3 bucket: ${error.message}`
+                );
+                return false;
+            } else if (error?.code === "CredentialsError") {
+                // Handle AWS credentials issues explicitly
+                console.error(`AWS Credentials error: ${error.message}`);
+                return false;
+            }
+
+            console.error(`Unexpected error occurred: ${error.message}`, error);
+
+            throw error;
+        }
     }
 }

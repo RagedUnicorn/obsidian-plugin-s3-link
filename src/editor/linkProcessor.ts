@@ -65,6 +65,9 @@ export default class LinkProcessor {
                 continue;
             }
 
+            if (!(await this.checkIfObjectExists(objectKey))) {
+                continue; // skip processing if object does not exist
+            }
             await this.processAndCacheSignedLink(objectKey, htmlElements);
         }
     }
@@ -198,6 +201,9 @@ export default class LinkProcessor {
                 }
             }
 
+            if (!(await this.checkIfObjectExists(objectKey))) {
+                continue; // skip processing if object does not exist
+            }
             await this.processAndCacheFileLink(objectKey, htmlElements);
         }
     }
@@ -232,6 +238,38 @@ export default class LinkProcessor {
                 error
             );
         }
+    }
+
+    /**
+     * Check if a signed link object exists in the S3 bucket
+     *
+     * @param objectKey The S3 object key
+     */
+    private async checkIfObjectExists(objectKey: string): Promise<boolean> {
+        try {
+            const fileExists = await this.awsS3Client.doesFileForObjectKeyExist(
+                objectKey
+            );
+
+            if (fileExists) {
+                console.debug(
+                    `${this.moduleName}::checkIfObjectExists - Object ${objectKey} exists in S3 bucket`
+                );
+                return true;
+            }
+        } catch (error) {
+            console.warn(
+                `${this.moduleName}::checkIfSignedLinkObjectExists - Object ${objectKey} does not exist in S3 bucket or access failed`
+            );
+
+            return false;
+        }
+
+        console.warn(
+            `${this.moduleName}::checkIfSignedLinkObjectExists - Object ${objectKey} does not exist in S3 bucket or access failed`
+        );
+
+        return false;
     }
 
     /**
