@@ -316,7 +316,11 @@ export default class HtmlProcessor {
         return element.hasAttribute(Config.S3_PLUGIN_PROCESSED);
     }
 
-    // TODO
+    /**
+     * Mark an element as processed by the plugin.
+     * @param element - The HTML element to mark as processed.
+     * @param attributeValue - The value to set for the processed attribute
+     */
     private markElementAsProcessed(
         element: HTMLElement,
         attributeValue: string
