@@ -58,7 +58,7 @@ export default class CodeMirrorExtension {
                 `${moduleName}::constructor - CodeMirrorExtension created`
             );
 
-            // Set up a MutationObserver to monitor when new images are added to the DOM
+            // Set up a MutationObserver to monitor when new nodes are added to the DOM
             const mutationObserver = new MutationObserver((mutations) => {
                 mutations.forEach((mutation) => {
                     if (mutation.addedNodes.length) {
@@ -89,6 +89,8 @@ export default class CodeMirrorExtension {
                 update(updatedView: ViewUpdate) {
                     /**
                      * Skip the update if the editor mode is not source. Let the MarkdownPostProcessor handle the preview mode.
+                     * Note: Source can also mean plain text mode and will still invoke the CodeMirror extension. There will however
+                     * be no rendered HTML content to process and thus no updates will be made.
                      */
                     if (!isEditorModeSource(app)) {
                         console.info(
