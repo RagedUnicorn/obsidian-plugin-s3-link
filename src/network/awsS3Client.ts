@@ -9,6 +9,7 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { Readable } from "stream";
 
 import Config from "../config";
+import DownloadManager from "../network/downloadManager";
 import { PluginSettings } from "../settings/settings";
 import AwsCredentialProvider from "../aws/awsCredentialProvider";
 import AwsCredential from "../aws/awsCredential";
@@ -69,18 +70,9 @@ export default class AwsS3Client {
         );
 
         if (!this.awsS3Client) {
-            throw new Error("S3Client not initialized");
-        }
-
-        try {
-            await this.getMetadataForObject(objectKey);
-        } catch (error) {
-            console.error(
-                `${this.moduleName} - Error retrieving object metadata`,
-                error
+            throw new Error(
+                `${this.moduleName}::getSignedUrlForObject - S3Client not initialized`
             );
-
-            throw error;
         }
 
         try {
@@ -98,10 +90,10 @@ export default class AwsS3Client {
             return signedUrl;
         } catch (error) {
             console.error(
-                `${this.moduleName} - Error generating signed URL:`,
+                `${this.moduleName}::getSignedUrlForObject - Error generating signed URL:`,
                 error
             );
-            throw error; // TODO do we want to throw the error or return null?
+            throw error;
         }
     }
 
@@ -132,14 +124,14 @@ export default class AwsS3Client {
                 const versionId =
                     exactFilteredVersion[VERSION_LATEST].VersionId;
                 console.debug(
-                    `${this.moduleName}: Retrieved versionId ${versionId} for object ${objectKey}`
+                    `${this.moduleName}::getLatestObjectVersion - Retrieved versionId ${versionId} for object ${objectKey}`
                 );
 
                 return versionId;
             }
         } catch (error) {
             console.error(
-                `${this.moduleName}: Failed to retrieve object versionId`,
+                `${this.moduleName}::getLatestObjectVersion - Failed to retrieve object versionId`,
                 error
             );
 
@@ -157,7 +149,9 @@ export default class AwsS3Client {
         objectKey: string
     ): Promise<ListObjectVersionsCommandOutput> {
         if (!this.awsS3Client) {
-            throw new Error("S3Client not initialized");
+            throw new Error(
+                `${this.moduleName}::getObjectMetadata - S3Client not initialized`
+            );
         }
 
         const command = new ListObjectVersionsCommand({
@@ -167,7 +161,7 @@ export default class AwsS3Client {
         const response = await this.awsS3Client.send(command);
 
         console.debug(
-            `${this.moduleName}: getObjectMetadata response`,
+            `${this.moduleName}::getObjectMetadata - getObjectMetadata response`,
             response
         );
 
@@ -178,18 +172,28 @@ export default class AwsS3Client {
      * Get an object from the S3 bucket.
      *
      * @param objectKey
+     * @param versionId
      * @returns
      */
-    public async getObject(objectKey: string): Promise<Readable> {
+    public async getObject(
+        objectKey: string,
+        versionId: string
+    ): Promise<Readable> {
         console.debug(
             `${this.moduleName}::getObject - Retrieving object ${objectKey}`
         );
 
         if (!this.awsS3Client) {
-            throw new Error("S3Client not initialized");
+            throw new Error(
+                `${this.moduleName}::getObject - S3Client not initialized`
+            );
         }
 
+        const downloadManager = DownloadManager.getInstance();
+
         try {
+            downloadManager.addNewDownload(objectKey, versionId);
+
             const command = new GetObjectCommand({
                 Bucket: this.pluginSettings.bucketName,
                 Key: objectKey,
@@ -197,12 +201,14 @@ export default class AwsS3Client {
             const response = await this.awsS3Client.send(command);
 
             if (response.Body) {
+                downloadManager.setRunningState(objectKey, versionId);
+
                 const stream = this.browserStreamToReadable(
                     response.Body as ReadableStream
                 );
 
                 stream.on("end", () => {
-                    //
+                    downloadManager.setCompletedState(objectKey, versionId);
                 });
 
                 return stream;
@@ -212,9 +218,9 @@ export default class AwsS3Client {
                 );
             }
         } catch (error) {
-            // error state TODO
+            downloadManager.setErrorState(objectKey, versionId);
             console.error(
-                `${this.moduleName} - Error retrieving object`,
+                `${this.moduleName}::getObject - Error retrieving object`,
                 error
             );
             throw error;
@@ -222,7 +228,9 @@ export default class AwsS3Client {
     }
 
     /**
-     * TODO document this
+     * Convert a browser stream to a Node.js Readable stream.
+     * This is required because the AWS SDK for JavaScript v3 returns a browser stream.
+     *
      * @param browserStream
      * @returns
      */
@@ -241,24 +249,6 @@ export default class AwsS3Client {
     }
 
     /**
-     * Get the metadata for an object in the S3 bucket.
-     *
-     * @param objectKey
-     */
-    private async getMetadataForObject(objectKey: string) {
-        try {
-            const headCommand = new HeadObjectCommand({
-                Bucket: this.pluginSettings.bucketName,
-                Key: objectKey,
-            });
-
-            await this.awsS3Client.send(headCommand);
-        } catch (error) {
-            throw error;
-        }
-    }
-
-    /**
      * Check if an object exists in the S3 bucket.
      *
      * @param objectKey
@@ -267,6 +257,16 @@ export default class AwsS3Client {
     public async doesFileForObjectKeyExist(
         objectKey: string
     ): Promise<boolean> {
+        console.debug(
+            `${this.moduleName}::doesFileForObjectKeyExist - Checking if object ${objectKey} exists in S3 Bucket`
+        );
+
+        if (!this.awsS3Client) {
+            throw new Error(
+                `${this.moduleName}::doesFileForObjectKeyExist - S3Client not initialized`
+            );
+        }
+
         try {
             const headCommand = new HeadObjectCommand({
                 Bucket: this.pluginSettings.bucketName,
@@ -286,16 +286,20 @@ export default class AwsS3Client {
             } else if (error.$metadata?.httpStatusCode === 403) {
                 // Possible lack of permissions
                 console.error(
-                    `Permission issue accessing S3 bucket: ${error.message}`
+                    `${this.moduleName}::doesFileForObjectKeyExist - Permission issue accessing S3 bucket: ${error.message}`
                 );
                 return false;
             } else if (error?.code === "CredentialsError") {
-                // Handle AWS credentials issues explicitly
-                console.error(`AWS Credentials error: ${error.message}`);
+                console.error(
+                    `${this.moduleName}::doesFileForObjectKeyExist - AWS credentials error: ${error.message}`
+                );
                 return false;
             }
 
-            console.error(`Unexpected error occurred: ${error.message}`, error);
+            console.error(
+                `${this.moduleName}::doesFileForObjectKeyExist - Error checking if object exists:`,
+                error
+            );
 
             throw error;
         }
