@@ -12,6 +12,7 @@ import FileCache from "../cache/fileCache";
 import LocalStorageSignedLinkCache from "../cache/localStorageSignedLinkCache";
 import LocalStorageFileLinkCache from "../cache/localStorageFileLinkCache";
 import S3FileLink from "../model/s3FileLink";
+import DownloadManager from "../network/downloadManager";
 
 export default class LinkProcessor {
     private readonly moduleName = "LinkProcessor";
@@ -150,7 +151,7 @@ export default class LinkProcessor {
      */
     private async processS3FileLinks(
         resolvedS3FileLinks: Map<string, HTMLElement[]>
-    ) {
+    ): Promise<void> {
         for (const [objectKey, htmlElements] of resolvedS3FileLinks) {
             console.debug(
                 `${this.moduleName}::processS3FileLinks - Processing S3 fileLink ${objectKey}`
@@ -159,52 +160,88 @@ export default class LinkProcessor {
             const cachedFileLink =
                 this.localStorageFileLinkCache.findCachedFileLink(objectKey);
 
-            if (cachedFileLink) {
-                if (
-                    this.localStorageFileLinkCache.isS3FileLinkTTLExpired(
-                        cachedFileLink?.lastUpdate
-                    )
-                ) {
-                    // skip retrieving of the newest version id if ttl is not expired
-                    this.emitFileLinkProcessed(cachedFileLink, htmlElements);
-
-                    continue;
-                }
-
-                const versionId = await this.getLatestVersionId(objectKey);
-
-                if (versionId === cachedFileLink.versionId) {
-                    console.debug(
-                        `${this.moduleName}::processS3FileLinks - Cached file link is up to date`,
-                        cachedFileLink
-                    );
-
-                    if (
-                        await this.fileCache.fileExistsInCacheFolder(
-                            cachedFileLink.objectKey,
-                            cachedFileLink.versionId
-                        )
-                    ) {
-                        this.emitFileLinkProcessed(
-                            cachedFileLink,
-                            htmlElements
-                        );
-                        continue;
-                    } else {
-                        console.warn(
-                            `${this.moduleName}::processS3FileLinks - File is cached in local storage but not in the cache folder, deleting from cache.`
-                        );
-                        this.localStorageFileLinkCache.deleteFileLinkFromCache(
-                            objectKey
-                        );
-                    }
-                }
+            // Cached file link exists, handle accordingly
+            if (
+                cachedFileLink &&
+                (await this.handleCachedFileLink(cachedFileLink, htmlElements))
+            ) {
+                continue;
             }
 
+            // If object does not exist, skip further processing
             if (!(await this.checkIfObjectExists(objectKey))) {
-                continue; // skip processing if object does not exist
+                continue;
             }
+
             await this.processAndCacheFileLink(objectKey, htmlElements);
+        }
+    }
+
+    /**
+     * Handle the cached file link.
+     *
+     * @param cachedFileLink The cached file link
+     * @param htmlElements Associated HTML elements
+     * @returns Whether the cached file link was handled
+     */
+    private async handleCachedFileLink(
+        cachedFileLink: S3FileLink,
+        htmlElements: HTMLElement[]
+    ): Promise<boolean> {
+        if (
+            !this.localStorageFileLinkCache.isS3FileLinkTTLExpired(
+                cachedFileLink?.lastUpdate
+            )
+        ) {
+            // Load file directly if TTL has not expired
+            return await this.loadFile(cachedFileLink, htmlElements);
+        }
+
+        const versionId = await this.getLatestVersionId(
+            cachedFileLink.objectKey
+        );
+
+        if (versionId === cachedFileLink.versionId) {
+            console.debug(
+                `${this.moduleName}::handleCachedFileLink - Cached file link is up to date`,
+                cachedFileLink
+            );
+
+            return await this.loadFile(cachedFileLink, htmlElements);
+        }
+
+        return false;
+    }
+
+    /**
+     * Load the file from the cache.
+     *
+     * @param cachedFileLink The cached file link
+     * @param htmlElements Associated HTML elements
+     * @returns Whether the file was loaded
+     */
+    private async loadFile(
+        cachedFileLink: S3FileLink,
+        htmlElements: HTMLElement[]
+    ): Promise<boolean> {
+        if (
+            await this.fileCache.fileExistsInCacheFolder(
+                cachedFileLink.objectKey,
+                cachedFileLink.versionId
+            )
+        ) {
+            this.emitFileLinkProcessed(cachedFileLink, htmlElements);
+
+            return true;
+        } else {
+            console.warn(
+                `${this.moduleName}::processS3FileLinks - File is cached in local storage but not in the cache folder, deleting from cache.`
+            );
+            this.localStorageFileLinkCache.deleteFileLinkFromCache(
+                cachedFileLink.objectKey
+            );
+
+            return false;
         }
     }
 
@@ -224,7 +261,7 @@ export default class LinkProcessor {
             const versionId = await this.getLatestVersionId(objectKey);
             if (!versionId) return;
 
-            const stream = await this.getObjectStream(objectKey);
+            const stream = await this.getObjectStream(objectKey, versionId);
             if (!stream) return;
 
             const processedLink = this.createFileLink(objectKey, versionId);
@@ -308,11 +345,15 @@ export default class LinkProcessor {
      * Get an object stream from S3.
      *
      * @param objectKey
+     * @param versionId
      * @returns The readable stream of the object or null if retrieval fails
      */
-    private async getObjectStream(objectKey: string): Promise<Readable | null> {
+    private async getObjectStream(
+        objectKey: string,
+        versionId: string
+    ): Promise<Readable | null> {
         try {
-            return await this.awsS3Client.getObject(objectKey);
+            return await this.awsS3Client.getObject(objectKey, versionId);
         } catch (error) {
             console.error(
                 `${this.moduleName}::getObjectStream - Failed to retrieve object stream for ${objectKey}`,
