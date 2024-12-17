@@ -1,54 +1,48 @@
 # Init Flow
 
-> Overview of how document changes, openings, and parts brought into view are processed.
+> Overview: This flow describes how document changes, openings, and parts brought into view are processed.
 
-This flow describes the initiation and completion of the process.
+This is the very start of the proccess. The process always starts with an HTML-Change event. The process show a very high level
+of the process of receiving an event in one of CodeMirror extension or MarkdownPost processor and processing the event.
 
 ```mermaid
 ---
-title: Obsidian Plugin S3 Image Links (Event Flow Start)
+title: Obsidian Plugin - Event Flow Start
 ---
 
 flowchart TD
-    startNode["HTML-Change Event (1)"]
+    %% Start
+    eventNode@{ shape: circle, label: "Start" }
+    eventNode --> htmlChangeEventNode["HTML-Change Event (1)"]
+
 
     %% Debounced Observer
     codeMirrorObserverDebounceNode["Debounce Observer Event (2)"]
-    codeMirrorObserverDebounceNode --> startNode
-    codeMirrorObserverDebounceNode --> codeMirrorObserverNode
+    codeMirrorObserverDebounceNode --> htmlChangeEventNode
+    codeMirrorObserverDebounceNode --> codeMirrorObserverNode["CodeMirror Observer (3b)"]
 
     %% Markdown Post-Processing
-    markdownPostProcessNode["Markdown Post Process (3a)"]
-    codeMirrorObserverNode["CodeMirror Observer (3b)"]
-
-    startNode --> markdownPostProcessNode
-    startNode --> codeMirrorObserverDebounceNode
+    htmlChangeEventNode --> markdownPostProcessNode["Markdown Post Process (3a)"]
+    %% CodeMirror Extension Processing
+    htmlChangeEventNode --> codeMirrorObserverDebounceNode
 
     %% CodeMirror Workflow
-    codeMirrorObserverNode --> codeMirrorProcessImageLinksNode
-    codeMirrorProcessImageLinksNode --> codeMirrorProcessVideoLinksNode
-    codeMirrorProcessVideoLinksNode --> codeMirrorProcessAudioLinksNode
-    codeMirrorProcessAudioLinksNode --> codeMirrorProcessDivEmbedLinksNode
-    codeMirrorProcessDivEmbedLinksNode --> endNode
-
-    codeMirrorProcessImageLinksNode["Process Image Links (4a)"]
-    codeMirrorProcessVideoLinksNode["Process Video Links (5a)"]
-    codeMirrorProcessAudioLinksNode["Process Audio Links (6a)"]
-    codeMirrorProcessDivEmbedLinksNode["Process Div Embed Links (7a)"]
+    codeMirrorObserverNode --> codeMirrorProcessImageLinksNode["Process Image Links (4a)"]
+    codeMirrorProcessImageLinksNode --> codeMirrorProcessVideoLinksNode["Process Video Links (5a)"]
+    codeMirrorProcessVideoLinksNode --> codeMirrorProcessAudioLinksNode["Process Audio Links (6a)"]
+    codeMirrorProcessAudioLinksNode --> codeMirrorProcessDivEmbedLinksNode["Process Div Embed Links (7a)"]
+    codeMirrorProcessDivEmbedLinksNode --> endOfProcessNode
 
     %% Markdown Workflow
-    markdownPostProcessNode --> markdownPostProcessImageLinksNode
-    markdownPostProcessImageLinksNode --> markdownPostProcessVideoLinksNode
-    markdownPostProcessVideoLinksNode --> markdownPostProcessAudioLinksNode
-    markdownPostProcessAudioLinksNode --> markdownPostProcessSpanEmbedLinksNode
-    markdownPostProcessSpanEmbedLinksNode --> endNode
+    markdownPostProcessNode --> markdownPostProcessImageLinksNode["Process Image Links (4b)"]
+    markdownPostProcessImageLinksNode --> markdownPostProcessVideoLinksNode["Process Video Links (5b)"]
+    markdownPostProcessVideoLinksNode --> markdownPostProcessAudioLinksNode["Process Audio Links (6b)"]
+    markdownPostProcessAudioLinksNode --> markdownPostProcessSpanEmbedLinksNode["Process Span Embed Links (7b)"]
+    markdownPostProcessSpanEmbedLinksNode --> endOfProcessNode
 
-    markdownPostProcessImageLinksNode["Process Image Links (4b)"]
-    markdownPostProcessVideoLinksNode["Process Video Links (5b)"]
-    markdownPostProcessAudioLinksNode["Process Audio Links (6b)"]
-    markdownPostProcessSpanEmbedLinksNode["Process Span Embed Links (7b)"]
-
-    endNode["End of Process (8)"]
+    %% End
+    endOfProcessNode["End of Process (8)"]
+    endOfProcessNode --> endNode@{ shape: circle, label: "End" }
 ```
 
 ## Flow Description
@@ -74,7 +68,7 @@ flowchart TD
     - **7b:** MarkdownPostProcessor-specific: Handles `span` tags for embedding files.
 
 6. **End (8):**  
-   The process completes once all content is processed.
+   The process completes once all content is processed, the event is processed and the next one can be started.
 
 ## Editor Modes Explained
 
