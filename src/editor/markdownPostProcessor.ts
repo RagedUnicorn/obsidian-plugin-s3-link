@@ -43,17 +43,6 @@ export default class MarkdownPostProcessor {
      * @param element HTMLElement containing the rendered markdown content
      */
     public async onMarkdownPostProcessor(element: HTMLElement) {
-        /**
-         * MarkdownPostProcessor should only be triggered in preview mode. This is just an additional check to
-         * ensure that the processor is only doing work in preview mode.
-         */
-        if (!isEditorModePreview(this.app)) {
-            console.info(
-                `${this.moduleName}::onMarkdownPostProcessor - Editor mode is not preview. Skipping update`
-            );
-            return;
-        }
-
         console.debug(
             `${this.moduleName}::onMarkdownPostProcessor - Processing rendered html content`
         );

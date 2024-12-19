@@ -21,8 +21,8 @@ export default class CodeMirrorExtension {
     private linkProcessor: LinkProcessor;
     private imageResolver: ImageResolver;
     private videoResolver: VideoResolver;
-    private AudioResolver: AudioResolver;
-    private DivEmbedResolver: DivEmbedResolver;
+    private audioResolver: AudioResolver;
+    private divEmbedResolver: DivEmbedResolver;
 
     constructor(private plugin: S3LinkPlugin) {
         this.linkProcessor = new LinkProcessor(
@@ -34,8 +34,8 @@ export default class CodeMirrorExtension {
         );
         this.imageResolver = new ImageResolver();
         this.videoResolver = new VideoResolver();
-        this.AudioResolver = new AudioResolver();
-        this.DivEmbedResolver = new DivEmbedResolver();
+        this.audioResolver = new AudioResolver();
+        this.divEmbedResolver = new DivEmbedResolver();
 
         console.info(
             `${this.moduleName}::constructor - CodeMirrorExtension created`
@@ -62,16 +62,6 @@ export default class CodeMirrorExtension {
             const mutationObserver = new MutationObserver((mutations) => {
                 mutations.forEach((mutation) => {
                     if (mutation.addedNodes.length) {
-                        /**
-                         * Skip the update if the editor mode is not source. Let the MarkdownPostProcessor handle the preview mode.
-                         */
-                        if (!isEditorModeSource(app)) {
-                            console.info(
-                                `${moduleName}::mutationObserver - Editor mode is not source. Skipping update`
-                            );
-                            return;
-                        }
-
                         console.debug(
                             `${moduleName}::mutationObserver - New nodes added to the DOM`
                         );
@@ -87,18 +77,6 @@ export default class CodeMirrorExtension {
 
             return {
                 update(updatedView: ViewUpdate) {
-                    /**
-                     * Skip the update if the editor mode is not source. Let the MarkdownPostProcessor handle the preview mode.
-                     * Note: Source can also mean plain text mode and will still invoke the CodeMirror extension. There will however
-                     * be no rendered HTML content to process and thus no updates will be made.
-                     */
-                    if (!isEditorModeSource(app)) {
-                        console.info(
-                            `${moduleName}::update - Editor mode is not source. Skipping update`
-                        );
-                        return;
-                    }
-
                     console.debug(
                         `${moduleName}::update - CodeMirrorExtension updated`,
                         updatedView
@@ -182,7 +160,7 @@ export default class CodeMirrorExtension {
      */
     private async processAudioLinks(htmlElement: HTMLElement) {
         const resolvedS3AudioLinks =
-            this.AudioResolver.resolveHtmlElement(htmlElement);
+            this.audioResolver.resolveHtmlElement(htmlElement);
 
         console.debug(
             `${this.moduleName}::processAudioLinks - Resolved S3 audio links`,
@@ -199,7 +177,7 @@ export default class CodeMirrorExtension {
      */
     private async processDivEmbedLinks(htmlElement: HTMLElement) {
         const resolvedDivEmbedLinks =
-            this.DivEmbedResolver.resolveHtmlElement(htmlElement);
+            this.divEmbedResolver.resolveHtmlElement(htmlElement);
 
         console.debug(
             `${this.moduleName}::processDivEmbedLinks - Resolved div embed links`,
