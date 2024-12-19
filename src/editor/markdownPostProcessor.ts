@@ -1,7 +1,6 @@
 import { App } from "obsidian";
 
 import S3LinkPlugin from "../main";
-import { isEditorModePreview } from "../util/editorHelper";
 import LinkProcessor from "../editor/linkProcessor";
 import ImageResolver from "../resolver/imageResolver";
 import VideoResolver from "../resolver/videoResolver";
