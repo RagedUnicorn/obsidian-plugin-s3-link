@@ -6,7 +6,7 @@ import { Readable } from "stream";
 
 import Config from "../config";
 import S3FileLink from "../model/s3FileLink";
-import { normalizeVersionId } from "../util/obsidianHelper";
+import { normalizeVersionId } from "../util/util";
 
 export default class FileCache {
     private readonly moduleName = "FileCache";

@@ -1,7 +1,7 @@
 import Config from "../config";
 import LocalStorageCache from "./localStorageCache";
 import S3FileLink from "../model/s3FileLink";
-import { normalizeVersionId } from "../util/obsidianHelper";
+import { normalizeVersionId } from "../util/util";
 
 /**
  * A class to cache S3 file links in the browser's local storage.
@@ -9,8 +9,8 @@ import { normalizeVersionId } from "../util/obsidianHelper";
 export default class LocalStorageFileLinkCache extends LocalStorageCache {
     protected readonly moduleName = "LocalStorageFileLinkCache";
 
-    constructor() {
-        super(Config.S3_FILE_LINKS_CACHE_PATH);
+    constructor(protected vaultName: string) {
+        super(Config.S3_FILE_LINKS_CACHE_PATH, vaultName);
     }
 
     /**

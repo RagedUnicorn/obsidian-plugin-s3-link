@@ -66,14 +66,3 @@ export async function getAbstractFileWithRetry(
 
     return null;
 }
-
-/**
- * Normalizes the version ID by removing leading non-alphanumeric characters.
- *
- * @param versionId The version ID.
- *
- * @returns The normalized version ID.
- */
-export function normalizeVersionId(versionId: string): string {
-    return versionId.replace(/[^\w]/g, "");
-}

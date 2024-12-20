@@ -7,6 +7,7 @@ import AwsS3Client from "./network/awsS3Client";
 import CodeMirrorExtension from "./editor/codeMirrorExtension";
 import MarkdownPostProcessor from "./editor/markdownPostProcessor";
 import HtmlProcessor from "./editor/htmlProcessor";
+import { normalizeVaultName } from "./util/util";
 
 import FileCache from "./cache/fileCache";
 import LocalStorageSignedLinkCache from "./cache/localStorageSignedLinkCache";
@@ -23,6 +24,7 @@ export default class S3LinkPlugin extends Plugin {
     codeMirrorExtension: CodeMirrorExtension;
     fileCache: FileCache;
     htmlProcessor: HtmlProcessor;
+    normalizedVaultName: string;
     localStorageSignedLinkCache: LocalStorageSignedLinkCache;
     localStorageFileLinkCache: LocalStorageFileLinkCache;
 
@@ -34,6 +36,9 @@ export default class S3LinkPlugin extends Plugin {
             await this.loadSettings();
             this.setupFileCache();
             this.htmlProcessor = new HtmlProcessor(this.fileCache, this.app);
+            this.normalizedVaultName = normalizeVaultName(
+                this.app.vault.getName()
+            );
             this.setupLocalStorageCache();
             this.setupAwsS3Client();
             this.registerEditorTools();
@@ -100,8 +105,12 @@ export default class S3LinkPlugin extends Plugin {
             `${this.moduleName}::setupLocalStorageCache - Setting up local storage cache`
         );
 
-        this.localStorageSignedLinkCache = new LocalStorageSignedLinkCache();
-        this.localStorageFileLinkCache = new LocalStorageFileLinkCache();
+        this.localStorageSignedLinkCache = new LocalStorageSignedLinkCache(
+            this.normalizedVaultName
+        );
+        this.localStorageFileLinkCache = new LocalStorageFileLinkCache(
+            this.normalizedVaultName
+        );
 
         console.info(
             `${this.moduleName}::setupLocalStorageCache - Local storage cache setup complete`

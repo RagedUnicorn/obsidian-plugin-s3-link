@@ -1,14 +1,12 @@
 import Config from "../config";
 import S3SignedLink from "../model/s3SignedLink";
 import S3FileLink from "../model/s3FileLink";
+import { normalizeObjectKey } from "../util/util";
 
 export default class LocalStorageCache {
     protected readonly moduleName!: string;
-    protected readonly cachePath: string;
 
-    constructor(cachePath: string) {
-        this.cachePath = cachePath;
-    }
+    constructor(protected cachePath: string, protected vaultName: string) {}
 
     public async init() {
         console.info(`${this.moduleName}: Initializing local storage cache`);
@@ -21,8 +19,15 @@ export default class LocalStorageCache {
      * @param versionId The versionId to write to localStorage
      */
     protected writeLocalStorage(item: S3FileLink | S3SignedLink) {
+        const normalizedObjectKey = normalizeObjectKey(item.objectKey);
+
+        console.debug(
+            `${this.moduleName}::writeLocalStorage - Writing item "${normalizedObjectKey}" to localStorage`,
+            item
+        );
+
         window.localStorage.setItem(
-            `${Config.PLUGIN_NAME}/${this.cachePath}/${item.objectKey}`,
+            `${Config.PLUGIN_NAME}/${this.vaultName}/${this.cachePath}/${normalizedObjectKey}`,
             JSON.stringify(item)
         );
     }
@@ -35,8 +40,14 @@ export default class LocalStorageCache {
 	 * @returns a S3Link object if the objectKey is present in the cache, null otherwise
 	 */
     protected searchLocalStorage(objectKey: string): string | null {
+        const normalizedObjectKey = normalizeObjectKey(objectKey);
+
+        console.debug(
+            `${this.moduleName}::searchLocalStorage - Searching for ${normalizedObjectKey} in localStorage`
+        );
+
         const s3CachedItem: string | null = window.localStorage.getItem(
-            `${Config.PLUGIN_NAME}/${this.cachePath}/${objectKey}`
+            `${Config.PLUGIN_NAME}/${this.vaultName}/${this.cachePath}/${normalizedObjectKey}`
         );
 
         return s3CachedItem ? s3CachedItem : null;
@@ -53,9 +64,9 @@ export default class LocalStorageCache {
         let baseKey: string;
 
         if (cachePath) {
-            baseKey = `${Config.PLUGIN_NAME}/${cachePath}`;
+            baseKey = `${Config.PLUGIN_NAME}/${this.vaultName}/${cachePath}`;
         } else {
-            baseKey = `${Config.PLUGIN_NAME}`;
+            baseKey = `${Config.PLUGIN_NAME}/${this.vaultName}`;
         }
 
         console.info(
@@ -82,14 +93,19 @@ export default class LocalStorageCache {
      * @param objectKey The object key to remove from the cache
      */
     protected removeItemFromLocalStorage(cachePath: string, objectKey: string) {
+        const normalizedObjectKey = normalizeObjectKey(objectKey);
+
         console.debug(
-            `${this.moduleName}::removeItemFromLocalStorage - Removing ${objectKey} from localStorage`
+            `${this.moduleName}::removeItemFromLocalStorage - Removing ${normalizedObjectKey} from localStorage`
         );
 
         const localStorageItems = Object.keys(window.localStorage);
 
         localStorageItems.forEach((key) => {
-            if (key === `${Config.PLUGIN_NAME}/${cachePath}/${objectKey}`) {
+            if (
+                key ===
+                `${Config.PLUGIN_NAME}/${this.vaultName}/${cachePath}/${normalizedObjectKey}`
+            ) {
                 localStorage.removeItem(key);
 
                 console.debug(

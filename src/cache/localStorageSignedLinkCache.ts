@@ -15,8 +15,8 @@ import S3SignedLink from "../model/s3SignedLink";
 export default class LocalStorageSignedLinkCache extends LocalStorageCache {
     protected readonly moduleName = "LocalStorageSignedLinkCache";
 
-    constructor() {
-        super(Config.S3_SIGNED_LINKS_CACHE_PATH);
+    constructor(protected vaultName: string) {
+        super(Config.S3_SIGNED_LINKS_CACHE_PATH, vaultName);
     }
 
     /**
