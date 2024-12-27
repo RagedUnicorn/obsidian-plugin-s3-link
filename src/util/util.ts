@@ -40,5 +40,6 @@ export function normalizeObjectKey(objectKey: string): string {
         .toLowerCase() // Convert to lowercase
         .replace(/[^a-z0-9\/\-\.\_ ]/g, "") // Allow safe characters
         .trim() // Trim leading/trailing spaces
-        .replace(/\s+/g, "_"); // Replace spaces with underscores
+        .replace(/\s+/g, "_") // Replace spaces with underscores
+        .replace(/[\-\.]/g, "_"); // Replace dots and hyphens with underscores
 }
