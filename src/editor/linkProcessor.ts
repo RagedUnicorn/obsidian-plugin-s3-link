@@ -4,15 +4,20 @@ import { emitter } from "../event/event";
 import {
     EVENT_FILE_LINK_PROCESSED,
     EVENT_SIGN_LINK_PROCESSED,
+    EVENT_DOWNLOAD_FINISHED,
 } from "../event/event";
-import S3SignedLink from "../model/s3SignedLink";
+
 import AwsS3Client from "../network/awsS3Client";
+import DownloadManager from "../network/downloadManager";
 import { PluginSettings } from "../settings/settings";
+
 import FileCache from "../cache/fileCache";
 import LocalStorageSignedLinkCache from "../cache/localStorageSignedLinkCache";
 import LocalStorageFileLinkCache from "../cache/localStorageFileLinkCache";
+
+import S3SignedLink from "../model/s3SignedLink";
 import S3FileLink from "../model/s3FileLink";
-import DownloadManager from "../network/downloadManager";
+import DownloadRecord from "../model/downloadRecord";
 
 export default class LinkProcessor {
     private readonly moduleName = "LinkProcessor";
@@ -22,9 +27,12 @@ export default class LinkProcessor {
         private localStorageSignedLinkCache: LocalStorageSignedLinkCache,
         private localStorageFileLinkCache: LocalStorageFileLinkCache,
         private pluginSettings: PluginSettings,
-        private awsS3Client: AwsS3Client
+        private awsS3Client: AwsS3Client,
+        private downloadManager: DownloadManager
     ) {
         console.info(`${this.moduleName}::constructor - LinkProcessor created`);
+
+        this.setupDownloadFinishedEventListener();
     }
 
     public async processLinks(resolvedLinks: {
@@ -173,7 +181,11 @@ export default class LinkProcessor {
                 continue;
             }
 
-            await this.processAndCacheFileLink(objectKey, htmlElements);
+            // Retrieve the latest version ID for the object
+            const versionId = await this.getLatestVersionId(objectKey);
+            if (!versionId) continue;
+
+            this.processAndCacheFileLink(objectKey, versionId, htmlElements);
         }
     }
 
@@ -219,6 +231,7 @@ export default class LinkProcessor {
      * @param cachedFileLink The cached file link
      * @param htmlElements Associated HTML elements
      * @returns Whether the file was loaded
+     *   True if the file was loaded, false otherwise
      */
     private async loadFile(
         cachedFileLink: S3FileLink,
@@ -246,35 +259,39 @@ export default class LinkProcessor {
     }
 
     /**
-     * Process and cache a file link.
+     * Process and cache file link.
      *
-     * @param objectKey
-     * @param htmlElements
-     *
-     * @returns Promise<void>
+     * @param objectKey The S3 object key
+     * @param versionId The S3 object version ID
+     * @param htmlElements The associated HTML elements
      */
     private async processAndCacheFileLink(
         objectKey: string,
+        versionId: string,
         htmlElements: HTMLElement[]
-    ): Promise<void> {
-        try {
-            const versionId = await this.getLatestVersionId(objectKey);
-            if (!versionId) return;
+    ) {
+        this.downloadManager.addNewDownLoad(objectKey, versionId, htmlElements);
+    }
 
-            const stream = await this.getObjectStream(objectKey, versionId);
-            if (!stream) return;
-
-            const processedLink = this.createFileLink(objectKey, versionId);
-
-            await this.cacheFileLink(processedLink);
-            await this.saveFileToCache(objectKey, versionId, stream);
-            this.emitFileLinkProcessed(processedLink, htmlElements);
-        } catch (error) {
+    /**
+     * Setup download finished event listener.
+     */
+    private setupDownloadFinishedEventListener() {
+        emitter.on(EVENT_DOWNLOAD_FINISHED, ({ record, stream }) => {
             console.error(
-                `${this.moduleName}::processAndCacheFileLink - Error processing S3 fileLink: ${objectKey}`,
-                error
+                `${this.moduleName}::setupEventListeners - Received Event EVENT_DOWNLOAD_FINISHED`
             );
-        }
+            const processedLink = this.createFileLink(
+                record.objectKey,
+                record.versionId
+            );
+
+            this.emitFileLinkProcessed(processedLink, record.elements);
+        });
+
+        console.info(
+            `${this.moduleName}::setupDownloadFinishedEventListener - Event listener setup complete`
+        );
     }
 
     /**
@@ -313,7 +330,7 @@ export default class LinkProcessor {
      * Get the latest version ID for an object in the S3 bucket.
      *
      * @param objectKey
-     * @returns
+     * @returns The latest version ID or null if not found
      */
     private async getLatestVersionId(
         objectKey: string
@@ -342,29 +359,8 @@ export default class LinkProcessor {
     }
 
     /**
-     * Get an object stream from S3.
-     *
-     * @param objectKey
-     * @param versionId
-     * @returns The readable stream of the object or null if retrieval fails
-     */
-    private async getObjectStream(
-        objectKey: string,
-        versionId: string
-    ): Promise<Readable | null> {
-        try {
-            return await this.awsS3Client.getObject(objectKey, versionId);
-        } catch (error) {
-            console.error(
-                `${this.moduleName}::getObjectStream - Failed to retrieve object stream for ${objectKey}`,
-                error
-            );
-            return null;
-        }
-    }
-
-    /**
      * Create a file link object.
+     *
      * @param objectKey
      * @param versionId
      * @returns
@@ -375,52 +371,9 @@ export default class LinkProcessor {
     }
 
     /**
-     * Store metadata for a file link in the local storage cache.
-     *
-     * @param fileLink
-     */
-    private async cacheFileLink(fileLink: S3FileLink): Promise<void> {
-        try {
-            await this.localStorageFileLinkCache.cacheFileLink(fileLink);
-        } catch (error) {
-            console.error(
-                `${this.moduleName}::cacheFileLink - Failed to cache file link: ${fileLink.objectKey}`,
-                error
-            );
-        }
-    }
-
-    /**
-     * Store an actual file in the cache folder.
-     *
-     * @param objectKey
-     * @param versionId
-     * @param stream
-     */
-    private async saveFileToCache(
-        objectKey: string,
-        versionId: string,
-        stream: Readable
-    ): Promise<void> {
-        try {
-            await this.fileCache.saveFileToCacheFolder(
-                objectKey,
-                versionId,
-                stream
-            );
-        } catch (error) {
-            console.error(
-                `${this.moduleName}::saveFileToCache - Failed to save file to cache for ${objectKey}`,
-                error
-            );
-        }
-    }
-
-    /**
      * Emit the sign link processed event
      *
      * @param s3SignedLink The signed link to emit
-     * @param file The associated file
      * @param htmlElements The associated HTML elements
      */
     private emitFileLinkProcessed(

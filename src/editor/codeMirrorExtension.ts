@@ -24,13 +24,7 @@ export default class CodeMirrorExtension {
     private divEmbedResolver: DivEmbedResolver;
 
     constructor(private plugin: S3LinkPlugin) {
-        this.linkProcessor = new LinkProcessor(
-            plugin.fileCache,
-            plugin.localStorageSignedLinkCache,
-            plugin.localStorageFileLinkCache,
-            plugin.pluginSettings,
-            plugin.awsS3Client
-        );
+        this.linkProcessor = plugin.linkProcessor;
         this.imageResolver = new ImageResolver();
         this.videoResolver = new VideoResolver();
         this.audioResolver = new AudioResolver();

@@ -9,8 +9,6 @@ import S3SignedLink from "../model/s3SignedLink";
  * Metadata about the signed link is stored in the local storage and used to determine if the signed link is still valid or
  * if it needs to be regenerated.
  *
- * TODO we might need to include version id in the signed link cache to ensure that the signed link is still valid.
- * There could be a new updated version of the file that the signed link is pointing to.
  */
 export default class LocalStorageSignedLinkCache extends LocalStorageCache {
     protected readonly moduleName = "LocalStorageSignedLinkCache";

@@ -3,7 +3,6 @@ import Resolver from "./resolver";
 
 export default class SpanEmbedResolver extends Resolver {
     private readonly moduleName = "SpanEmbedResolver";
-    // span.internal-embed is being used by markdown processor (TODO code mirror seems to be using div.internal-embed)
     targetElement = "span.internal-embed";
 
     constructor() {

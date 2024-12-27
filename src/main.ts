@@ -12,6 +12,8 @@ import { normalizeVaultName } from "./util/util";
 import FileCache from "./cache/fileCache";
 import LocalStorageSignedLinkCache from "./cache/localStorageSignedLinkCache";
 import LocalStorageFileLinkCache from "./cache/localStorageFileLinkCache";
+import DownloadManager from "./network/downloadManager";
+import LinkProcessor from "./editor/linkProcessor";
 
 /**
  * Entrypoint calss for the S3LinkPlugin.
@@ -27,6 +29,8 @@ export default class S3LinkPlugin extends Plugin {
     normalizedVaultName: string;
     localStorageSignedLinkCache: LocalStorageSignedLinkCache;
     localStorageFileLinkCache: LocalStorageFileLinkCache;
+    downloadManager: DownloadManager;
+    linkProcessor: LinkProcessor;
 
     /**
      * Entrypoint for plugin initialization.
@@ -41,6 +45,8 @@ export default class S3LinkPlugin extends Plugin {
             );
             this.setupLocalStorageCache();
             this.setupAwsS3Client();
+            this.setupDownloadManager();
+            this.setupLinkProcessor();
             this.registerEditorTools();
         } catch (error) {
             console.error(
@@ -79,6 +85,32 @@ export default class S3LinkPlugin extends Plugin {
     private async setupAwsS3Client() {
         this.awsS3Client = new AwsS3Client(this.pluginSettings);
         await this.awsS3Client.init();
+    }
+
+    /**
+     * Setup the download manager for the plugin.
+     */
+    private setupDownloadManager() {
+        this.downloadManager = new DownloadManager(
+            this.awsS3Client,
+            this.pluginSettings,
+            this.localStorageFileLinkCache,
+            this.fileCache
+        );
+    }
+
+    /**
+     * Setup the link processor for the plugin.
+     */
+    private setupLinkProcessor() {
+        this.linkProcessor = new LinkProcessor(
+            this.fileCache,
+            this.localStorageSignedLinkCache,
+            this.localStorageFileLinkCache,
+            this.pluginSettings,
+            this.awsS3Client,
+            this.downloadManager
+        );
     }
 
     /**

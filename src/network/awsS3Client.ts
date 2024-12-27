@@ -9,7 +9,6 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { Readable } from "stream";
 
 import Config from "../config";
-import DownloadManager from "../network/downloadManager";
 import { PluginSettings } from "../settings/settings";
 import AwsCredentialProvider from "../aws/awsCredentialProvider";
 import AwsCredential from "../aws/awsCredential";
@@ -171,6 +170,8 @@ export default class AwsS3Client {
     /**
      * Get an object from the S3 bucket.
      *
+     * This method returns a Readable stream that can be used to read the object.
+     *
      * @param objectKey
      * @param versionId
      * @returns
@@ -189,11 +190,7 @@ export default class AwsS3Client {
             );
         }
 
-        const downloadManager = DownloadManager.getInstance();
-
         try {
-            downloadManager.addNewDownload(objectKey, versionId);
-
             const command = new GetObjectCommand({
                 Bucket: this.pluginSettings.bucketName,
                 Key: objectKey,
@@ -201,15 +198,9 @@ export default class AwsS3Client {
             const response = await this.awsS3Client.send(command);
 
             if (response.Body) {
-                downloadManager.setRunningState(objectKey, versionId);
-
                 const stream = this.browserStreamToReadable(
                     response.Body as ReadableStream
                 );
-
-                stream.on("end", () => {
-                    downloadManager.setCompletedState(objectKey, versionId);
-                });
 
                 return stream;
             } else {
@@ -218,7 +209,6 @@ export default class AwsS3Client {
                 );
             }
         } catch (error) {
-            downloadManager.setErrorState(objectKey, versionId);
             console.error(
                 `${this.moduleName}::getObject - Error retrieving object`,
                 error

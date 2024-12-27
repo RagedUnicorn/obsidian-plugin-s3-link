@@ -3,7 +3,6 @@ import Resolver from "./resolver";
 
 export default class DivEmbedResolver extends Resolver {
     private readonly moduleName = "DivEmbedResolver";
-    // div.internal-embed is being used by code mirror
     targetElement = "div.internal-embed";
 
     constructor() {
