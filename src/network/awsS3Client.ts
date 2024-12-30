@@ -32,6 +32,13 @@ export default class AwsS3Client {
     }
 
     /**
+     * Unload the AWS client.
+     */
+    public unload() {
+        this.awsS3Client?.destroy();
+    }
+
+    /**
      * Create an S3 client using the provided settings.
      */
     private async createS3Client() {

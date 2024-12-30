@@ -16,7 +16,7 @@ import DownloadManager from "./network/downloadManager";
 import LinkProcessor from "./editor/linkProcessor";
 
 /**
- * Entrypoint calss for the S3LinkPlugin.
+ * Entrypoint class for the S3LinkPlugin.
  */
 export default class S3LinkPlugin extends Plugin {
     private readonly moduleName = "S3LinkPlugin";
@@ -38,13 +38,13 @@ export default class S3LinkPlugin extends Plugin {
     async onload() {
         try {
             await this.loadSettings();
-            this.setupFileCache();
+            await this.setupFileCache();
             this.htmlProcessor = new HtmlProcessor(this.fileCache, this.app);
             this.normalizedVaultName = normalizeVaultName(
                 this.app.vault.getName()
             );
             this.setupLocalStorageCache();
-            this.setupAwsS3Client();
+            await this.setupAwsS3Client();
             this.setupDownloadManager();
             this.setupLinkProcessor();
             this.registerEditorTools();
@@ -53,6 +53,7 @@ export default class S3LinkPlugin extends Plugin {
                 `${this.moduleName}::onload - Error during initialization`,
                 error
             );
+            throw error;
         }
     }
 
@@ -61,7 +62,9 @@ export default class S3LinkPlugin extends Plugin {
      */
     async onunload(): Promise<void> {
         console.info(`${this.moduleName}::onunload - Unloading plugin`);
-        this.fileCache.closeAllOpenStreams();
+
+        this.fileCache?.closeAllOpenStreams();
+        this.awsS3Client?.unload();
     }
 
     /**
@@ -116,13 +119,13 @@ export default class S3LinkPlugin extends Plugin {
     /**
      * Setup local file cache for the plugin.
      */
-    private setupFileCache() {
+    private async setupFileCache() {
         console.info(
             `${this.moduleName}::setupFileCache - Setting up file cache`
         );
 
         this.fileCache = new FileCache(this.app);
-        this.fileCache.init();
+        await this.fileCache.init();
 
         console.info(
             `${this.moduleName}::setupFileCache - File cache setup complete`
