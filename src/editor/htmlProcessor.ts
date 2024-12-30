@@ -29,8 +29,8 @@ export default class HtmlProcessor {
     }
 
     /**
-     * Set up event listeners to receive processed links. Processed links are links that
-     * where resolved to their respective signed s3 or file s3 links.
+     * Set up event listeners to receive processed links.
+     * Processed links are links that were resolved to their respective signed s3 or file s3 links.
      */
     private setupEventListeners() {
         emitter.on(EVENT_SIGN_LINK_PROCESSED, ({ elements, s3SignedLink }) => {
@@ -71,7 +71,7 @@ export default class HtmlProcessor {
      * @param link - The signed s3 link.
      * @param updater - The function to update the element.
      */
-    private processElements(
+    private async processElements(
         elements: HTMLElement[],
         link: S3FileLink | S3SignedLink,
         updater: (
@@ -79,7 +79,7 @@ export default class HtmlProcessor {
             link: S3SignedLink | S3FileLink
         ) => Promise<void> | void
     ) {
-        elements.forEach(async (htmlElement) => {
+        for (const htmlElement of elements) {
             try {
                 await updater(htmlElement, link);
             } catch (error) {
@@ -89,7 +89,7 @@ export default class HtmlProcessor {
                     error
                 );
             }
-        });
+        }
     }
 
     /**
@@ -103,12 +103,23 @@ export default class HtmlProcessor {
         s3FileLink: S3FileLink
     ) {
         if (this.isElementProcessed(htmlElement)) return;
-        const source = await this.fileCache.getFileFromCacheFolder(s3FileLink);
-        this.updateElement(htmlElement, source, s3FileLink.objectKey);
-        this.markElementAsProcessed(
-            htmlElement,
-            `${Config.S3_FILE_LINK_PREFIX}/${s3FileLink.objectKey}`
-        );
+
+        try {
+            const source = await this.fileCache.getFileFromCacheFolder(
+                s3FileLink
+            );
+            this.updateElement(htmlElement, source, s3FileLink.objectKey);
+            this.markElementAsProcessed(
+                htmlElement,
+                `${Config.S3_FILE_LINK_PREFIX}/${s3FileLink.objectKey}`
+            );
+        } catch (error) {
+            console.error(
+                `${this.moduleName}::updateElementFileLink - Error getting file from cache`,
+                s3FileLink,
+                error
+            );
+        }
     }
 
     /**
@@ -122,6 +133,7 @@ export default class HtmlProcessor {
         s3SignedLink: S3SignedLink
     ) {
         if (this.isElementProcessed(htmlElement)) return;
+
         this.updateElement(
             htmlElement,
             s3SignedLink.signedUrl,
@@ -167,6 +179,7 @@ export default class HtmlProcessor {
 
     /**
      * Update the source of the given media element to the given source.
+     *
      * @param element - The media element to update.
      * @param source - The source to update the element with.
      * @param withControls - Whether to add controls to the media element.
@@ -187,6 +200,13 @@ export default class HtmlProcessor {
         }
     }
 
+    /**
+     * Update the source of the given span element to the given source.
+     *
+     * @param spanElement - The span element to update.
+     * @param source - The source to update the element with.
+     * @param objectKey - The object key of the source.
+     */
     private updateSpanElement(
         spanElement: HTMLSpanElement,
         source: string,
@@ -209,6 +229,13 @@ export default class HtmlProcessor {
         }
     }
 
+    /**
+     * Update the source of the given div element to the given source.
+     *
+     * @param divElement - The div element to update.
+     * @param source - The source to update the element with.
+     * @param objectKey - The object key of the source.
+     */
     private updateDivElement(
         divElement: HTMLDivElement,
         source: string,
@@ -236,6 +263,15 @@ export default class HtmlProcessor {
         }
     }
 
+    /**
+     * Create a media element based on the display type of the object key.
+     *
+     * @param displayType - The display type of the object key.
+     * @param source - The source of the media element.
+     * @param objectKey - The object key of the source.
+     *
+     * @returns The created media element.
+     */
     private createMediaElementFromDisplayType(
         displayType: DISPLAY_TYPE,
         source: string,
@@ -243,17 +279,20 @@ export default class HtmlProcessor {
     ): HTMLElementWithSource | null {
         switch (displayType) {
             case DISPLAY_TYPE.IMAGE:
-                return this.createMediaElement<HTMLImageElement>("img", source);
+                return this.createMediaElementWithSource<HTMLImageElement>(
+                    "img",
+                    source
+                );
             case DISPLAY_TYPE.VIDEO:
                 if (objectKey.endsWith(".webm")) {
                     return this.createWebmMediaElement(source);
                 }
-                return this.createMediaElement<HTMLVideoElement>(
+                return this.createMediaElementWithSource<HTMLVideoElement>(
                     "video",
                     source
                 );
             case DISPLAY_TYPE.AUDIO:
-                return this.createMediaElement<HTMLAudioElement>(
+                return this.createMediaElementWithSource<HTMLAudioElement>(
                     "audio",
                     source
                 );
@@ -266,22 +305,32 @@ export default class HtmlProcessor {
         }
     }
 
+    /**
+     * Create a media element for a webm file.
+        const videoTag = this.createMediaElementWithSource<HTMLVideoElement>(
+     * @param source - The source of the media element.
+     *
+     * @returns The created media element.
+     */
     private createWebmMediaElement(
         source: string
     ): HTMLVideoElement | HTMLAudioElement {
-        const videoTag = this.createMediaElement<HTMLVideoElement>(
+        const videoTag = this.createMediaElementWithSource<HTMLVideoElement>(
             "video",
             source
         );
+
         videoTag.onloadedmetadata = () => {
             if (videoTag.videoWidth === 0) {
-                const audioTag = this.createMediaElement<HTMLAudioElement>(
-                    "audio",
-                    source
-                );
+                const audioTag =
+                    this.createMediaElementWithSource<HTMLAudioElement>(
+                        "audio",
+                        source
+                    );
                 videoTag.replaceWith(audioTag);
             }
         };
+
         return videoTag;
     }
 
@@ -293,7 +342,7 @@ export default class HtmlProcessor {
      *
      * @returns The created media element.
      */
-    private createMediaElement<T extends HTMLElementWithSource>(
+    private createMediaElementWithSource<T extends HTMLElementWithSource>(
         tagName: string,
         src: string
     ): T {
