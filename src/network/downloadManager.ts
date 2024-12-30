@@ -7,6 +7,7 @@ import FileCache from "../cache/fileCache";
 
 import DownloadRecord from "../model/downloadRecord";
 import S3FileLink from "../model/s3FileLink";
+import { createS3FileLink } from "../model/s3FileLink";
 
 import { emitter } from "../event/event";
 import { EVENT_DOWNLOAD_FINISHED } from "../event/event";
@@ -48,8 +49,8 @@ export default class DownloadManager {
             console.info(
                 `${this.moduleName}::addNewDownload - Download record ${objectKey}/${versionId} already exists`
             );
-            const existingRecord = this.downloadRecords.get(recordKey)!;
-            existingRecord.elements.push(...elements);
+            const existingRecord = this.downloadRecords.get(recordKey);
+            existingRecord?.elements.push(...elements);
         } else {
             this.downloadRecords.set(recordKey, downloadRecord);
             this.startDownload(downloadRecord);
@@ -89,7 +90,7 @@ export default class DownloadManager {
 
             if (!stream) return;
 
-            const processedLink = this.createFileLink(
+            const processedLink = createS3FileLink(
                 record.objectKey,
                 record.versionId
             );
@@ -127,18 +128,6 @@ export default class DownloadManager {
             );
             return null;
         }
-    }
-
-    /**
-     * Create a file link object.
-     *
-     * @param objectKey
-     * @param versionId
-     * @returns
-     *    A new S3FileLink object
-     */
-    private createFileLink(objectKey: string, versionId: string): S3FileLink {
-        return new S3FileLink(objectKey, Date.now(), versionId);
     }
 
     /**

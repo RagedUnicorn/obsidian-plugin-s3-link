@@ -1,5 +1,4 @@
 import path from "path";
-import * as ebml from "ts-ebml";
 
 export const SUPPORTED_FILE_TYPES = {
     images: ["avif", "bmp", "gif", "jpeg", "jpg", "png", "svg", "webp"],

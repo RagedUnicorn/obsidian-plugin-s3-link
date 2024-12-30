@@ -8,14 +8,21 @@
  *
  * The exception is when the object is deleted, in which case the signed link will no longer work.
  */
-export default class S3SignedLink {
+type S3SignedLink = {
     objectKey: string;
     lastUpdate: number;
     signedUrl: string;
+};
 
-    constructor(objectKey: string, lastUpdate: number, signedUrl: string) {
-        this.objectKey = objectKey;
-        this.lastUpdate = lastUpdate;
-        this.signedUrl = signedUrl;
-    }
+export default S3SignedLink;
+
+export function createS3SignedLink(
+    objectKey: string,
+    signedUrl: string
+): S3SignedLink {
+    return {
+        objectKey: objectKey,
+        lastUpdate: Date.now(),
+        signedUrl: signedUrl,
+    };
 }

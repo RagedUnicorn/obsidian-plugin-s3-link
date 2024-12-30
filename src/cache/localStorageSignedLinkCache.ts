@@ -39,10 +39,10 @@ export default class LocalStorageSignedLinkCache extends LocalStorageCache {
      * @returns a signed link if the objectKey is present in the cache, null otherwise
      */
     public findCachedSignedLink(objectKey: string): S3SignedLink | null {
-        let s3CachedItem = this.searchLocalStorage(objectKey);
+        const s3CachedItem = this.searchLocalStorage(objectKey);
 
         if (s3CachedItem) {
-            let s3SignedLink: S3SignedLink = JSON.parse(s3CachedItem);
+            const s3SignedLink: S3SignedLink = JSON.parse(s3CachedItem);
 
             console.debug(
                 `${this.moduleName}::findCachedSignedLink - Found cached signed link`,

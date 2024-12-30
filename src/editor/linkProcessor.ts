@@ -1,5 +1,3 @@
-import { Readable } from "stream";
-
 import { emitter } from "../event/event";
 import {
     EVENT_FILE_LINK_PROCESSED,
@@ -15,9 +13,10 @@ import FileCache from "../cache/fileCache";
 import LocalStorageSignedLinkCache from "../cache/localStorageSignedLinkCache";
 import LocalStorageFileLinkCache from "../cache/localStorageFileLinkCache";
 
-import S3SignedLink from "../model/s3SignedLink";
 import S3FileLink from "../model/s3FileLink";
-import DownloadRecord from "../model/downloadRecord";
+import { createS3FileLink } from "../model/s3FileLink";
+import S3SignedLink from "../model/s3SignedLink";
+import { createS3SignedLink } from "../model/s3SignedLink";
 
 export default class LinkProcessor {
     private readonly moduleName = "LinkProcessor";
@@ -102,11 +101,7 @@ export default class LinkProcessor {
                     signedUrl
                 );
 
-                const processedLink = new S3SignedLink(
-                    objectKey,
-                    Date.now(),
-                    signedUrl
-                );
+                const processedLink = createS3SignedLink(objectKey, signedUrl);
 
                 this.localStorageSignedLinkCache.cacheSignedLink(processedLink);
                 this.emitSignLinkProcessed(processedLink, htmlElements);
@@ -281,7 +276,8 @@ export default class LinkProcessor {
             console.error(
                 `${this.moduleName}::setupEventListeners - Received Event EVENT_DOWNLOAD_FINISHED`
             );
-            const processedLink = this.createFileLink(
+
+            const processedLink = createS3FileLink(
                 record.objectKey,
                 record.versionId
             );
@@ -356,18 +352,6 @@ export default class LinkProcessor {
             );
             return null;
         }
-    }
-
-    /**
-     * Create a file link object.
-     *
-     * @param objectKey
-     * @param versionId
-     * @returns
-     *    A new S3FileLink object
-     */
-    private createFileLink(objectKey: string, versionId: string): S3FileLink {
-        return new S3FileLink(objectKey, Date.now(), versionId);
     }
 
     /**

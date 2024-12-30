@@ -38,8 +38,8 @@ export function normalizeVaultName(vaultName: string): string {
 export function normalizeObjectKey(objectKey: string): string {
     return objectKey
         .toLowerCase() // Convert to lowercase
-        .replace(/[^a-z0-9\-\.\_ ]/g, "") // Allow safe characters
+        .replace(/[^a-z0-9-._ ]/g, "") // Allow safe characters
         .trim() // Trim leading/trailing spaces
         .replace(/\s+/g, "_") // Replace spaces with underscores
-        .replace(/[\-\.]/g, "_"); // Replace dots and hyphens with underscores
+        .replace(/[-.]/g, "_"); // Replace dots and hyphens with underscores
 }

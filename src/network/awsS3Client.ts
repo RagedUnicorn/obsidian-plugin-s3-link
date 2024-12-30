@@ -266,7 +266,7 @@ export default class AwsS3Client {
             await this.awsS3Client.send(headCommand);
 
             return true;
-        } catch (error: any) {
+        } catch (error) {
             if (
                 error?.$metadata?.httpStatusCode === 404 ||
                 error.name === "NotFound"

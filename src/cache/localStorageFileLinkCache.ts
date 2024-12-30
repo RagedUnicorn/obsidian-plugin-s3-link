@@ -37,10 +37,10 @@ export default class LocalStorageFileLinkCache extends LocalStorageCache {
      * @returns a file link if the objectKey is present in the cache, null otherwise
      */
     public findCachedFileLink(objectKey: string): S3FileLink | null {
-        let s3CachedItem = this.searchLocalStorage(objectKey);
+        const s3CachedItem = this.searchLocalStorage(objectKey);
 
         if (s3CachedItem) {
-            let s3FileLink: S3FileLink = JSON.parse(s3CachedItem);
+            const s3FileLink: S3FileLink = JSON.parse(s3CachedItem);
 
             console.debug(
                 `${this.moduleName}::findCachedFileLink - Found cached file link`,

@@ -174,7 +174,7 @@ export default class HtmlProcessor {
     private updateMediaElement(
         element: HTMLImageElement | HTMLVideoElement | HTMLAudioElement,
         source: string,
-        withControls: boolean = false
+        withControls = false
     ) {
         element.src = source;
         if (
