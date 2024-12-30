@@ -273,8 +273,8 @@ export default class LinkProcessor {
      */
     private setupDownloadFinishedEventListener() {
         emitter.on(EVENT_DOWNLOAD_FINISHED, ({ record, stream }) => {
-            console.error(
-                `${this.moduleName}::setupEventListeners - Received Event EVENT_DOWNLOAD_FINISHED`
+            console.debug(
+                `${this.moduleName}::setupDownloadFinishedEventListener - Received Event EVENT_DOWNLOAD_FINISHED`
             );
 
             const processedLink = createS3FileLink(

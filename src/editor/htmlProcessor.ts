@@ -35,7 +35,7 @@ export default class HtmlProcessor {
     private setupEventListeners() {
         emitter.on(EVENT_SIGN_LINK_PROCESSED, ({ elements, s3SignedLink }) => {
             console.debug(
-                `${this.moduleName}::setupEventListeners - Received Event signLinkProcessed`,
+                `${this.moduleName}::setupEventListeners - Received Event EVENT_SIGN_LINK_PROCESSED`,
                 elements,
                 s3SignedLink
             );
@@ -48,7 +48,7 @@ export default class HtmlProcessor {
 
         emitter.on(EVENT_FILE_LINK_PROCESSED, ({ elements, s3FileLink }) => {
             console.debug(
-                `${this.moduleName}::setupEventListeners - Received Event fileLinkProcessed`,
+                `${this.moduleName}::setupEventListeners - Received Event EVENT_FILE_LINK_PROCESSED`,
                 elements,
                 s3FileLink
             );
