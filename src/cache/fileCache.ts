@@ -213,9 +213,10 @@ export default class FileCache {
         s3FileLink: S3FileLink
     ): Promise<string> {
         const fileExtension = path.extname(s3FileLink.objectKey);
+        const normalizedVersionId = normalizeVersionId(s3FileLink.versionId);
         // important to use a relative path here
         const normalizedPath = normalizePath(
-            `${Config.S3_FILE_LINK_CACHE_FOLDER}\\${s3FileLink.versionId}${fileExtension}`
+            `${Config.S3_FILE_LINK_CACHE_FOLDER}\\${normalizedVersionId}${fileExtension}`
         );
 
         return this.getVaultResourcePath(s3FileLink, normalizedPath);
