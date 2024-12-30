@@ -1,5 +1,4 @@
-import { App } from "obsidian";
-import { debounce } from "obsidian";
+import { App, debounce } from "obsidian";
 
 import {
     ViewPlugin,

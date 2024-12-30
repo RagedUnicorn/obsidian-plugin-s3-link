@@ -2,8 +2,8 @@ import { App } from "obsidian";
 
 import Config from "../config";
 import FileCache from "../cache/fileCache";
-import { emitter } from "../event/event";
 import {
+    emitter,
     EVENT_FILE_LINK_PROCESSED,
     EVENT_SIGN_LINK_PROCESSED,
 } from "../event/event";

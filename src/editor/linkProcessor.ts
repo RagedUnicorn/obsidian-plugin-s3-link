@@ -1,5 +1,5 @@
-import { emitter } from "../event/event";
 import {
+    emitter,
     EVENT_FILE_LINK_PROCESSED,
     EVENT_SIGN_LINK_PROCESSED,
     EVENT_DOWNLOAD_FINISHED,
@@ -13,10 +13,8 @@ import FileCache from "../cache/fileCache";
 import LocalStorageSignedLinkCache from "../cache/localStorageSignedLinkCache";
 import LocalStorageFileLinkCache from "../cache/localStorageFileLinkCache";
 
-import S3FileLink from "../model/s3FileLink";
-import { createS3FileLink } from "../model/s3FileLink";
-import S3SignedLink from "../model/s3SignedLink";
-import { createS3SignedLink } from "../model/s3SignedLink";
+import S3FileLink, { createS3FileLink } from "../model/s3FileLink";
+import S3SignedLink, { createS3SignedLink } from "../model/s3SignedLink";
 
 export default class LinkProcessor {
     private readonly moduleName = "LinkProcessor";

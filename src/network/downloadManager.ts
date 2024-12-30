@@ -6,11 +6,9 @@ import LocalStorageFileLinkCache from "../cache/localStorageFileLinkCache";
 import FileCache from "../cache/fileCache";
 
 import DownloadRecord from "../model/downloadRecord";
-import S3FileLink from "../model/s3FileLink";
-import { createS3FileLink } from "../model/s3FileLink";
+import S3FileLink, { createS3FileLink } from "../model/s3FileLink";
 
-import { emitter } from "../event/event";
-import { EVENT_DOWNLOAD_FINISHED } from "../event/event";
+import { emitter, EVENT_DOWNLOAD_FINISHED } from "../event/event";
 
 export default class DownloadManager {
     private readonly moduleName = "DownloadManager";
