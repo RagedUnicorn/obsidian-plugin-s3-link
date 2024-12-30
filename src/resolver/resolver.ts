@@ -17,7 +17,7 @@ export default abstract class Resolver {
         signObjectKeys: Map<string, HTMLElement[]>;
     };
 
-    protected addObjectKey(objectKey: string, htmlElement: HTMLElement) {
+    protected addFileObjectKey(objectKey: string, htmlElement: HTMLElement) {
         if (this.objectKeys.has(objectKey)) {
             this.objectKeys.get(objectKey)?.push(htmlElement);
         } else {
@@ -59,7 +59,7 @@ export default abstract class Resolver {
             if (isSigned) {
                 this.addSignObjectKey(objectKey, htmlElement);
             } else {
-                this.addObjectKey(objectKey, htmlElement);
+                this.addFileObjectKey(objectKey, htmlElement);
             }
             console.debug(
                 `${moduleName}::processValidObjectKey - Valid ${

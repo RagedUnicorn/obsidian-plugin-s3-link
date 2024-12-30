@@ -1,7 +1,7 @@
-import LocalStorageFileLinkCache from "../../src/cache/localStorageFileLinkCache";
-import Config from "../../src/config";
-import { localStorageMock } from "./mock/localStorageMock";
-import { createS3FileLink } from "../../src/model/s3FileLink";
+import LocalStorageFileLinkCache from "../../../src/cache/localStorageFileLinkCache";
+import Config from "../../../src/config";
+import { localStorageMock } from "../mocks/localStorageMock";
+import { createS3FileLink } from "../../../src/model/s3FileLink";
 
 describe("LocalStorageFileLinkCache", () => {
     let localStorageFileLinkCache: LocalStorageFileLinkCache;

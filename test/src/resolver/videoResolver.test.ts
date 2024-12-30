@@ -1,5 +1,5 @@
-import VideoResolver from "../../src/resolver/videoResolver";
-import Config from "../../src/config";
+import VideoResolver from "../../../src/resolver/videoResolver";
+import Config from "../../../src/config";
 
 describe("VideoResolver", () => {
     let resolver: VideoResolver;

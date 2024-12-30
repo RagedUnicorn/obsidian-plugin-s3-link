@@ -44,16 +44,7 @@ export default class FileCache {
      */
     private async isCacheFolderPresent(): Promise<boolean> {
         const cachePath = this.getRelativeCachePath();
-
-        try {
-            return await this.app.vault.adapter.exists(cachePath);
-        } catch (error) {
-            console.error(
-                `${this.moduleName}::isCacheFolderPresent - Error checking folder`,
-                error
-            );
-            return false;
-        }
+        return this.pathExists(cachePath);
     }
 
     /**
@@ -123,39 +114,47 @@ export default class FileCache {
         versionId: string,
         stream: Readable
     ): Promise<void> {
-        return new Promise((resolve, reject) => {
-            const fileExtension = path.extname(objectKey);
-            const normalizedVersionId = normalizeVersionId(versionId);
-            const objectPath = normalizePath(
-                `${this.getFullCachePath()}\\${normalizedVersionId}${fileExtension}`
-            ); // full path for writing file
-            const writeStream = fs.createWriteStream(objectPath);
+        const fileExtension = path.extname(objectKey);
+        const normalizedVersionId = normalizeVersionId(versionId);
+        const objectPath = normalizePath(
+            `${this.getFullCachePath()}\\${normalizedVersionId}${fileExtension}`
+        ); // full path for writing file
 
-            this.addOpenStream(writeStream);
-            stream.pipe(writeStream);
+        const writeStream = fs.createWriteStream(objectPath);
+        this.addOpenStream(writeStream);
 
-            const cleanUp = () => {
-                clearTimeout(timeout);
-                this.removeOpenStream(writeStream);
-            };
+        try {
+            await Promise.race([
+                new Promise<void>((resolve, reject) => {
+                    stream.pipe(writeStream);
 
-            const timeout = setTimeout(() => {
-                writeStream.destroy(new Error("Stream write timeout"));
-            }, Config.S3_FILE_LINK_DOWNLOAD_TIMEOUT);
+                    writeStream.once("finish", resolve);
+                    writeStream.once("error", reject);
+                    stream.once("error", reject);
+                }),
+                new Promise<void>((_, reject) => {
+                    setTimeout(() => {
+                        writeStream.destroy(new Error("Stream write timeout"));
+                        reject(new Error("Stream write timeout"));
+                    }, Config.S3_FILE_LINK_DOWNLOAD_TIMEOUT || 30000);
+                }),
+            ]);
 
-            writeStream.once("finish", () => {
-                cleanUp();
-                resolve();
-            });
-            writeStream.once("error", (error) => {
-                cleanUp();
-                reject(error);
-            });
-            stream.once("error", (error) => {
-                cleanUp();
-                reject(error);
-            });
-        });
+            console.debug(
+                `${this.moduleName}::saveFileToCacheFolder - File saved successfully`
+            );
+        } catch (error) {
+            console.error(
+                `${this.moduleName}::saveFileToCacheFolder - Error saving file to cache`,
+                error
+            );
+            throw error;
+        } finally {
+            this.removeOpenStream(writeStream);
+            if (!writeStream.destroyed) {
+                writeStream.destroy();
+            }
+        }
     }
 
     /**
@@ -297,11 +296,21 @@ export default class FileCache {
             `${Config.S3_FILE_LINK_CACHE_FOLDER}\\${versionId}${fileExtension}`
         );
 
+        return this.pathExists(normalizedPath);
+    }
+
+    /**
+     * Checks if a file exists in the cache folder.
+     *
+     * @param path
+     * @returns true if the file exists, false otherwise
+     */
+    private async pathExists(path: string): Promise<boolean> {
         try {
-            return await this.app.vault.adapter.exists(normalizedPath);
+            return await this.app.vault.adapter.exists(path);
         } catch (error) {
             console.error(
-                `${this.moduleName}::fileExistsInCacheFolder - Error checking file`,
+                `${this.moduleName}::pathExists - Error checking path`,
                 error
             );
             return false;

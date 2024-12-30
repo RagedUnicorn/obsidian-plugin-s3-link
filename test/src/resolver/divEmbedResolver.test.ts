@@ -1,5 +1,5 @@
-import DivEmbedResolver from "../../src/resolver/divEmbedResolver";
-import Config from "../../src/config";
+import DivEmbedResolver from "../../../src/resolver/divEmbedResolver";
+import Config from "../../../src/config";
 
 describe("DivEmbedResolver", () => {
     let resolver: DivEmbedResolver;

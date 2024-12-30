@@ -1,4 +1,4 @@
-import path from "path";
+import * as path from "path";
 
 export const SUPPORTED_FILE_TYPES = {
     images: ["avif", "bmp", "gif", "jpeg", "jpg", "png", "svg", "webp"],
