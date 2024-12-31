@@ -65,19 +65,16 @@ export default class HtmlProcessor {
     }
 
     /**
-     * Process all elements that have been resolved to a signed s3 link.
+     * Process all elements that have been resolved to a s3 signed or file link.
      *
      * @param elements - The elements to process.
-     * @param link - The signed s3 link.
+     * @param link - The s3 signed or file link.
      * @param updater - The function to update the element.
      */
-    private async processElements(
+    private async processElements<T extends S3FileLink | S3SignedLink>(
         elements: HTMLElement[],
-        link: S3FileLink | S3SignedLink,
-        updater: (
-            htmlElement: HTMLElement,
-            link: S3SignedLink | S3FileLink
-        ) => Promise<void> | void
+        link: T,
+        updater: (htmlElement: HTMLElement, link: T) => Promise<void> | void
     ) {
         for (const htmlElement of elements) {
             try {

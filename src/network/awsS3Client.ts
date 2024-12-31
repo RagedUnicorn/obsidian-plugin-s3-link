@@ -5,6 +5,8 @@ import {
     ListObjectVersionsCommand,
     ListObjectVersionsCommandOutput,
 } from "@aws-sdk/client-s3";
+import { handleS3Error } from "./awsErrorHandler";
+
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { Readable } from "stream";
 
@@ -15,7 +17,7 @@ import AwsCredential from "../aws/awsCredential";
 
 export default class AwsS3Client {
     private readonly moduleName = "AwsS3Client";
-    private awsS3Client: S3Client;
+    private awsS3Client!: S3Client;
     private awsCredentialProvider = new AwsCredentialProvider();
 
     private pluginSettings: PluginSettings;
@@ -96,9 +98,10 @@ export default class AwsS3Client {
             return signedUrl;
         } catch (error) {
             console.error(
-                `${this.moduleName}::getSignedUrlForObject - Error generating signed URL:`,
+                `${this.moduleName}::getSignedUrlForObject - Error retrieving signed URL for object ${objectKey}`,
                 error
             );
+            handleS3Error(error, this.moduleName, "getSignedUrlForObject");
             throw error;
         }
     }
@@ -141,6 +144,7 @@ export default class AwsS3Client {
                 error
             );
 
+            handleS3Error(error, this.moduleName, "getLatestObjectVersion");
             throw error;
         }
     }
@@ -217,9 +221,10 @@ export default class AwsS3Client {
             }
         } catch (error) {
             console.error(
-                `${this.moduleName}::getObject - Error retrieving object`,
+                `${this.moduleName}::getObject - Error retrieving object from S3`,
                 error
             );
+            handleS3Error(error, this.moduleName, "getObject");
             throw error;
         }
     }
@@ -274,31 +279,12 @@ export default class AwsS3Client {
 
             return true;
         } catch (error) {
-            if (
-                error?.$metadata?.httpStatusCode === 404 ||
-                error.name === "NotFound"
-            ) {
-                // Object does not exist
-                return false;
-            } else if (error.$metadata?.httpStatusCode === 403) {
-                // Possible lack of permissions
-                console.error(
-                    `${this.moduleName}::doesFileForObjectKeyExist - Permission issue accessing S3 bucket: ${error.message}`
-                );
-                return false;
-            } else if (error?.code === "CredentialsError") {
-                console.error(
-                    `${this.moduleName}::doesFileForObjectKeyExist - AWS credentials error: ${error.message}`
-                );
-                return false;
-            }
-
-            console.error(
-                `${this.moduleName}::doesFileForObjectKeyExist - Error checking if object exists:`,
-                error
+            console.warn(
+                `${this.moduleName}::doesFileForObjectKeyExist - Object ${objectKey} does not exist in S3 Bucket`
             );
+            handleS3Error(error, this.moduleName, "doesFileForObjectKeyExist");
 
-            throw error;
+            return false;
         }
     }
 }

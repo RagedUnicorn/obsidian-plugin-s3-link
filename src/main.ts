@@ -20,17 +20,17 @@ import LinkProcessor from "./editor/linkProcessor";
  */
 export default class S3LinkPlugin extends Plugin {
     private readonly moduleName = "S3LinkPlugin";
-    pluginSettings: PluginSettings;
-    awsS3Client: AwsS3Client;
-    markdownPostProcessor: MarkdownPostProcessor;
-    codeMirrorExtension: CodeMirrorExtension;
-    fileCache: FileCache;
-    htmlProcessor: HtmlProcessor;
-    normalizedVaultName: string;
-    localStorageSignedLinkCache: LocalStorageSignedLinkCache;
-    localStorageFileLinkCache: LocalStorageFileLinkCache;
-    downloadManager: DownloadManager;
-    linkProcessor: LinkProcessor;
+    pluginSettings!: PluginSettings;
+    awsS3Client!: AwsS3Client;
+    markdownPostProcessor!: MarkdownPostProcessor;
+    codeMirrorExtension!: CodeMirrorExtension;
+    fileCache!: FileCache;
+    htmlProcessor!: HtmlProcessor;
+    normalizedVaultName!: string;
+    localStorageSignedLinkCache!: LocalStorageSignedLinkCache;
+    localStorageFileLinkCache!: LocalStorageFileLinkCache;
+    downloadManager!: DownloadManager;
+    linkProcessor!: LinkProcessor;
 
     /**
      * Entrypoint for plugin initialization.

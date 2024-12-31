@@ -4,8 +4,8 @@
     "description": "Obsidian plugin for including S3 links in notes",
     "main": "main.js",
     "scripts": {
-        "dev": "node esbuild.config.mjs",
-        "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
+        "dev": "node esbuild.config.mjs dev",
+        "build": "tsc --noEmit --skipLibCheck && node esbuild.config.mjs prod",
         "test": "jest",
         "lint": "npx eslint .",
         "version": "node version-bump.mjs && git add manifest.json versions.json"

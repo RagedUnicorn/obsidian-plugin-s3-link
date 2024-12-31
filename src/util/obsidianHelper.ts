@@ -21,7 +21,7 @@ export async function getVaultResourcePath(
     const filePath = normalizePath(
         `${Config.S3_FILE_LINK_CACHE_FOLDER}/${s3FileLink.versionId}${fileExtension}`
     );
-    const loadedFile = await this.getAbstractFileWithRetry(app, filePath);
+    const loadedFile = await getAbstractFileWithRetry(app, filePath);
 
     if (loadedFile == null) {
         throw new Error(`Failed to retrieve resource path for ${s3FileLink}`);

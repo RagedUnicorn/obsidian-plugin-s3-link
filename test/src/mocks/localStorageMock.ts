@@ -1,5 +1,5 @@
 export const localStorageMock = {
-    storage: {},
+    storage: {} as Record<string, string>,
     setItem(key: string, value: string) {
         this.storage[key] = value;
     },
