@@ -1,11 +1,11 @@
 import { App } from "obsidian";
 
 import S3LinkPlugin from "../main";
-import LinkProcessor from "../editor/linkProcessor";
-import ImageResolver from "../resolver/imageResolver";
-import VideoResolver from "../resolver/videoResolver";
-import AudioResolver from "../resolver/audioResolver";
-import SpanEmbedResolver from "../resolver/spanEmbedResolver";
+import LinkProcessor from "../core/linkProcessor";
+import ImageResolver from "../resolvers/imageResolver";
+import VideoResolver from "../resolvers/videoResolver";
+import AudioResolver from "../resolvers/audioResolver";
+import SpanEmbedResolver from "../resolvers/spanEmbedResolver";
 
 export default class MarkdownPostProcessor {
     private readonly moduleName = "S3PostProcessor";

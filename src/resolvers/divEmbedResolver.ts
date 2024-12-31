@@ -1,9 +1,9 @@
-import Config from "../config";
+import Config from "../config/config";
 import Resolver from "./resolver";
 
-export default class SpanEmbedResolver extends Resolver {
-    private readonly moduleName = "SpanEmbedResolver";
-    targetElement = "span.internal-embed";
+export default class DivEmbedResolver extends Resolver {
+    private readonly moduleName = "DivEmbedResolver";
+    targetElement = "div.internal-embed";
 
     constructor() {
         super();
@@ -24,20 +24,20 @@ export default class SpanEmbedResolver extends Resolver {
             `${this.moduleName}::resolveHtmlElement - Processing rendered html content`
         );
 
-        const spanEmbedElements = element.querySelectorAll(
+        const divEmbedElements = element.querySelectorAll(
             this.targetElement
         ) as NodeListOf<HTMLImageElement>;
         this.clearObjectKeys();
         this.clearSignObjectKeys();
 
-        if (spanEmbedElements.length == 0) {
+        if (divEmbedElements.length == 0) {
             console.debug(
-                `${this.moduleName}::resolveHtmlElement - Rendered markdown content does not contain any span embed tags, aborting...`
+                `${this.moduleName}::resolveHtmlElement - Rendered markdown content does not contain any div embed tags, aborting...`
             );
         }
 
-        spanEmbedElements.forEach((spanEmbedElement) => {
-            const src = spanEmbedElement.getAttribute("src");
+        divEmbedElements.forEach((divEmbedElement) => {
+            const src = divEmbedElement.getAttribute("src");
 
             if (src) {
                 const parts = src.split(Config.S3_LINK_SPLITTER);
@@ -48,14 +48,14 @@ export default class SpanEmbedResolver extends Resolver {
                     this.processValidObjectKey(
                         this.moduleName,
                         objectKey,
-                        spanEmbedElement,
+                        divEmbedElement,
                         false
                     );
                 } else if (linkPrefix === Config.S3_SIGNED_LINK_PREFIX) {
                     this.processValidObjectKey(
                         this.moduleName,
                         objectKey,
-                        spanEmbedElement,
+                        divEmbedElement,
                         true
                     );
                 }

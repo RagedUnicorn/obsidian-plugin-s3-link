@@ -1,20 +1,3 @@
-export interface PluginSettings {
-    bucketName: string;
-    region: string;
-    accessKeyId: string;
-    secretAccessKey: string;
-    profile: string;
-}
-
-// TODO hardcoded values
-export const DEFAULT_SETTINGS: Partial<PluginSettings> = {
-    bucketName: "ragedunicorn-obsidian-plugin-s3-link-test-assets",
-    region: "eu-central-1",
-    accessKeyId: "",
-    secretAccessKey: "",
-    profile: "default",
-};
-
 export const REGIONS = {
     "us-east-2": "US East (Ohio)",
     "us-east-1": "US East (N. Virginia)",

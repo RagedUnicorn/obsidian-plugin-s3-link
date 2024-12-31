@@ -1,16 +1,16 @@
-import Config from "../config";
+import Config from "../config/config";
 import Resolver from "./resolver";
 
-export default class AudioResolver extends Resolver {
-    private readonly moduleName = "AudioResolver";
-    targetElement = "audio";
+export default class VideoResolver extends Resolver {
+    private readonly moduleName = "VideoResolver";
+    targetElement = "video";
 
     constructor() {
         super();
     }
 
     /**
-     * Resolve all audio tags that contain a link to an S3 object in the plugins expected format.
+     * Resolve all video tags that contain a link to an S3 object in one of the plugins expected format.
      *
      * @param element An HTMLElement containing the rendered markdown content
      *
@@ -24,20 +24,20 @@ export default class AudioResolver extends Resolver {
             `${this.moduleName}::resolveHtmlElement - Processing rendered html content`
         );
 
-        const audioElements = element.querySelectorAll(
+        const videoElements = element.querySelectorAll(
             this.targetElement
-        ) as NodeListOf<HTMLImageElement>;
+        ) as NodeListOf<HTMLVideoElement>;
         this.clearObjectKeys();
         this.clearSignObjectKeys();
 
-        if (audioElements.length == 0) {
+        if (videoElements.length == 0) {
             console.debug(
-                `${this.moduleName}::resolveHtmlElement - Rendered markdown content does not contain any audio tags`
+                `${this.moduleName}::resolveHtmlElement - Rendered markdown content does not contain any video tags`
             );
         }
 
-        audioElements.forEach((audioElement) => {
-            const parts = audioElement.src.split(Config.S3_LINK_SPLITTER);
+        videoElements.forEach((videoElement) => {
+            const parts = videoElement.src.split(Config.S3_LINK_SPLITTER);
             const linkPrefix = parts[this.s3LinkLeftPart];
             const objectKey = parts[this.s3LinkRightPart];
 
@@ -45,14 +45,14 @@ export default class AudioResolver extends Resolver {
                 this.processValidObjectKey(
                     this.moduleName,
                     objectKey,
-                    audioElement,
+                    videoElement,
                     false
                 );
             } else if (linkPrefix === Config.S3_SIGNED_LINK_PREFIX) {
                 this.processValidObjectKey(
                     this.moduleName,
                     objectKey,
-                    audioElement,
+                    videoElement,
                     true
                 );
             }

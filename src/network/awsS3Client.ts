@@ -10,8 +10,8 @@ import { handleS3Error } from "./awsErrorHandler";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { Readable } from "stream";
 
-import Config from "../config";
-import { PluginSettings } from "../settings/settings";
+import Config from "../config/config";
+import { PluginSettings } from "../settings/pluginSettings";
 import AwsCredentialProvider from "../aws/awsCredentialProvider";
 import AwsCredential from "../aws/awsCredential";
 

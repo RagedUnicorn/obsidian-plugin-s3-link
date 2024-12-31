@@ -2,8 +2,8 @@ import { TFile, App, normalizePath } from "obsidian";
 
 import * as path from "path";
 
-import S3FileLink from "../model/s3FileLink";
-import Config from "../config";
+import S3FileLink from "../core/s3FileLink";
+import Config from "../config/config";
 
 /**
  * Retrieves the resource path for a given S3 file link.

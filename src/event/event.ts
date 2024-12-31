@@ -1,8 +1,8 @@
 import mitt, { Emitter } from "mitt";
 
-import S3SignedLink from "../model/s3SignedLink";
-import S3FileLink from "../model/s3FileLink";
-import DownloadRecord from "../model/downloadRecord";
+import S3SignedLink from "../core/s3SignedLink";
+import S3FileLink from "../core/s3FileLink";
+import DownloadRecord from "../network/downloadRecord";
 import { Readable } from "stream";
 
 export const EVENT_FILE_LINK_PROCESSED = "fileLinkProcessed";

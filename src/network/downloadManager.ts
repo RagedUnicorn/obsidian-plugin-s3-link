@@ -1,12 +1,12 @@
-import { PluginSettings } from "../settings/settings";
+import { PluginSettings } from "../settings/pluginSettings";
 import { Readable } from "stream";
 
 import AwsS3Client from "./awsS3Client";
 import LocalStorageFileLinkCache from "../cache/localStorageFileLinkCache";
 import FileCache from "../cache/fileCache";
 
-import DownloadRecord from "../model/downloadRecord";
-import S3FileLink, { createS3FileLink } from "../model/s3FileLink";
+import DownloadRecord from "./downloadRecord";
+import S3FileLink, { createS3FileLink } from "../core/s3FileLink";
 
 import { emitter, EVENT_DOWNLOAD_FINISHED } from "../event/event";
 

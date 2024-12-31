@@ -7,14 +7,14 @@ import {
 
 import AwsS3Client from "../network/awsS3Client";
 import DownloadManager from "../network/downloadManager";
-import { PluginSettings } from "../settings/settings";
+import { PluginSettings } from "../settings/pluginSettings";
 
 import FileCache from "../cache/fileCache";
 import LocalStorageSignedLinkCache from "../cache/localStorageSignedLinkCache";
 import LocalStorageFileLinkCache from "../cache/localStorageFileLinkCache";
 
-import S3FileLink, { createS3FileLink } from "../model/s3FileLink";
-import S3SignedLink, { createS3SignedLink } from "../model/s3SignedLink";
+import S3FileLink, { createS3FileLink } from "./s3FileLink";
+import S3SignedLink, { createS3SignedLink } from "./s3SignedLink";
 
 export default class LinkProcessor {
     private readonly moduleName = "LinkProcessor";

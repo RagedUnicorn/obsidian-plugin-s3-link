@@ -4,7 +4,7 @@ import * as path from "path";
 
 import AwsProfile from "./awsProfile";
 import AwsCredential from "./awsCredential";
-import Config from "../config";
+import Config from "../config/config";
 
 /**
  * TODO should cache credentials file content on startup and update when changes in settings are detected

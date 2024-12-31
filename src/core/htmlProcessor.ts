@@ -1,14 +1,14 @@
 import { App } from "obsidian";
 
-import Config from "../config";
+import Config from "../config/config";
 import FileCache from "../cache/fileCache";
 import {
     emitter,
     EVENT_FILE_LINK_PROCESSED,
     EVENT_SIGN_LINK_PROCESSED,
 } from "../event/event";
-import S3FileLink from "../model/s3FileLink";
-import S3SignedLink from "../model/s3SignedLink";
+import S3FileLink from "./s3FileLink";
+import S3SignedLink from "./s3SignedLink";
 import {
     DISPLAY_TYPE,
     getDisplayTypeByObjectKey,

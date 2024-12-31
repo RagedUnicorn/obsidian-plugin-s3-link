@@ -8,11 +8,11 @@ import {
 } from "@codemirror/view";
 
 import S3LinkPlugin from "../main";
-import LinkProcessor from "../editor/linkProcessor";
-import ImageResolver from "../resolver/imageResolver";
-import VideoResolver from "../resolver/videoResolver";
-import AudioResolver from "../resolver/audioResolver";
-import DivEmbedResolver from "../resolver/divEmbedResolver";
+import LinkProcessor from "../core/linkProcessor";
+import ImageResolver from "../resolvers/imageResolver";
+import VideoResolver from "../resolvers/videoResolver";
+import AudioResolver from "../resolvers/audioResolver";
+import DivEmbedResolver from "../resolvers/divEmbedResolver";
 
 export default class CodeMirrorExtension {
     private readonly moduleName = "CodeMirrorExtension";

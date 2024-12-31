@@ -1,19 +1,20 @@
 import { Plugin } from "obsidian";
 
-import { PluginSettings, DEFAULT_SETTINGS } from "./settings/settings";
-import Config from "./config";
+import { PluginSettings } from "./settings/pluginSettings";
+import { DEFAULT_SETTINGS } from "./settings/defaultSettings";
+import Config from "./config/config";
 
 import AwsS3Client from "./network/awsS3Client";
 import CodeMirrorExtension from "./editor/codeMirrorExtension";
 import MarkdownPostProcessor from "./editor/markdownPostProcessor";
-import HtmlProcessor from "./editor/htmlProcessor";
-import { normalizeVaultName } from "./util/util";
+import HtmlProcessor from "./core/htmlProcessor";
+import { normalizeVaultName } from "./utils/normalizeUtils";
 
 import FileCache from "./cache/fileCache";
 import LocalStorageSignedLinkCache from "./cache/localStorageSignedLinkCache";
 import LocalStorageFileLinkCache from "./cache/localStorageFileLinkCache";
 import DownloadManager from "./network/downloadManager";
-import LinkProcessor from "./editor/linkProcessor";
+import LinkProcessor from "./core/linkProcessor";
 
 /**
  * Entrypoint class for the S3LinkPlugin.

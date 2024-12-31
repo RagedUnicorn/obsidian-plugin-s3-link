@@ -4,9 +4,9 @@ import * as path from "path";
 import * as fs from "fs";
 import { Readable } from "stream";
 
-import Config from "../config";
-import S3FileLink from "../model/s3FileLink";
-import { normalizeVersionId } from "../util/util";
+import Config from "../config/config";
+import S3FileLink from "../core/s3FileLink";
+import { normalizeVersionId } from "../utils/normalizeUtils";
 
 export default class FileCache {
     private readonly moduleName = "FileCache";

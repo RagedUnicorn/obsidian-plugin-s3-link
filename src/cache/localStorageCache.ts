@@ -1,7 +1,7 @@
-import Config from "../config";
-import S3SignedLink from "../model/s3SignedLink";
-import S3FileLink from "../model/s3FileLink";
-import { normalizeObjectKey } from "../util/util";
+import Config from "../config/config";
+import S3SignedLink from "../core/s3SignedLink";
+import S3FileLink from "../core/s3FileLink";
+import { normalizeObjectKey } from "../utils/normalizeUtils";
 
 export default class LocalStorageCache {
     protected readonly moduleName!: string;
@@ -73,9 +73,10 @@ export default class LocalStorageCache {
             `${this.moduleName}::clearLocalStorage - Clearing cache for baseKey: ${baseKey}`
         );
 
-        const localStorageItems = Object.keys(window.localStorage);
+        const localStorageItems = Object.keys(window.localStorage.storage);
 
         localStorageItems.forEach((key) => {
+            console.log("searching for Key: ", key);
             if (key.startsWith(baseKey)) {
                 localStorage.removeItem(key);
 

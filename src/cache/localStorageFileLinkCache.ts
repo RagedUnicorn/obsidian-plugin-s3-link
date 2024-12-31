@@ -1,7 +1,7 @@
-import Config from "../config";
+import Config from "../config/config";
 import LocalStorageCache from "./localStorageCache";
-import S3FileLink from "../model/s3FileLink";
-import { normalizeVersionId } from "../util/util";
+import S3FileLink from "../core/s3FileLink";
+import { normalizeVersionId } from "../utils/normalizeUtils";
 
 /**
  * A class to cache S3 file links in the browser's local storage.
