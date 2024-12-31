@@ -1,5 +1,5 @@
-import ImageResolver from "../../../src/resolver/imageResolver";
-import Config from "../../../src/config";
+import ImageResolver from "../../../src/resolvers/imageResolver";
+import Config from "../../../src/config/config";
 
 describe("ImageResolver", () => {
     let resolver: ImageResolver;

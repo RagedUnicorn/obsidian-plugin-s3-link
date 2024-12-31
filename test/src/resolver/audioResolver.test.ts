@@ -1,5 +1,5 @@
-import AudioResolver from "../../../src/resolver/audioResolver";
-import Config from "../../../src/config";
+import AudioResolver from "../../../src/resolvers/audioResolver";
+import Config from "../../../src/config/config";
 
 describe("AudioResolver", () => {
     let resolver: AudioResolver;

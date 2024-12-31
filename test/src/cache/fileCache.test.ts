@@ -1,5 +1,5 @@
 import FileCache from "../../../src/cache/fileCache";
-import Config from "../../../src/config";
+import Config from "../../../src/config/config";
 import { WriteStream } from "fs";
 import { App, Vault, DataAdapter } from "obsidian";
 

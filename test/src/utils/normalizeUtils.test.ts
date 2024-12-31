@@ -2,7 +2,7 @@ import {
     normalizeVersionId,
     normalizeVaultName,
     normalizeObjectKey,
-} from "../../src/util/util";
+} from "../../../src/utils/normalizeUtils";
 
 describe("normalizeVersionId", () => {
     test("removes leading non-alphanumeric characters", () => {

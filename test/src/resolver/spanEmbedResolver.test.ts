@@ -1,5 +1,5 @@
-import SpanEmbedResolver from "../../../src/resolver/spanEmbedResolver";
-import Config from "../../../src/config";
+import SpanEmbedResolver from "../../../src/resolvers/spanEmbedResolver";
+import Config from "../../../src/config/config";
 
 describe("SpanEmbedResolver", () => {
     let resolver: SpanEmbedResolver;

@@ -1,4 +1,4 @@
-import Resolver from "../../../src/resolver/resolver";
+import Resolver from "../../../src/resolvers/resolver";
 
 class TestResolver extends Resolver {
     protected targetElement = "testElement";
