@@ -62,6 +62,7 @@ const buildConfig = {
 // Copy the main.js and manifest.json to the test vault
 function movePluginFiles() {
     const sourceMain = path.resolve("./dist/main.js");
+    const sourceMainMap = path.resolve("./dist/main.js.map");
     const sourceManifest = path.resolve("./manifest.json");
     const destinationFolder = path.resolve(
         "./test/vault/test/.obsidian/plugins/s3-link-test/"
@@ -77,9 +78,19 @@ function movePluginFiles() {
         .catch((err) => console.error("Error moving main.js:", err));
 
     fs.promises
-        .copyFile(sourceMain, path.join(destinationFolder, "manifest.json"))
+        .copyFile(sourceManifest, path.join(destinationFolder, "manifest.json"))
         .then(() => console.log("manifest.json moved successfully"))
         .catch((err) => console.error("Error moving manifest.json:", err));
+
+    if (fs.existsSync(sourceMainMap)) {
+        fs.promises
+            .copyFile(
+                sourceMainMap,
+                path.join(destinationFolder, "main.js.map")
+            )
+            .then(() => console.log("main.js.map moved successfully"))
+            .catch((err) => console.error("Error moving main.js.map:", err));
+    }
 }
 
 async function build() {
