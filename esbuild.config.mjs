@@ -9,7 +9,8 @@ if you want to view the source, please visit the github repository of this plugi
 */
 `;
 
-const isProd = process.argv[2] === "prod";
+const isProd = process.argv.includes("prod");
+const isWatch = process.argv.includes("watch");
 
 const buildConfig = {
     banner: {
@@ -33,11 +34,11 @@ const buildConfig = {
         "@lezer/lr",
         ...builtins,
     ],
-    minify: isProd ? false : true,
+    minify: isProd,
     format: "cjs",
     target: "es2018",
     logLevel: isProd ? "error" : "debug",
-    sourcemap: isProd ? false : "inline",
+    sourcemap: !isProd,
     outfile: "./dist/main.js",
     plugins: [
         {
@@ -70,36 +71,31 @@ function movePluginFiles() {
         fs.mkdirSync(destinationFolder, { recursive: true });
     }
 
-    fs.copyFile(sourceMain, path.join(destinationFolder, "main.js"), (err) => {
-        if (err) {
-            console.error("Error moving main.js:", err);
-        } else {
-            console.log("main.js moved successfully");
-        }
-    });
+    fs.promises
+        .copyFile(sourceMain, path.join(destinationFolder, "main.js"))
+        .then(() => console.log("main.js moved successfully"))
+        .catch((err) => console.error("Error moving main.js:", err));
 
-    fs.copyFile(
-        sourceManifest,
-        path.join(destinationFolder, "manifest.json"),
-        (err) => {
-            if (err) {
-                console.error("Error moving manifest.json:", err);
-            } else {
-                console.log("manifest.json moved successfully");
-            }
-        }
-    );
+    fs.promises
+        .copyFile(sourceMain, path.join(destinationFolder, "manifest.json"))
+        .then(() => console.log("manifest.json moved successfully"))
+        .catch((err) => console.error("Error moving manifest.json:", err));
 }
 
 async function build() {
     try {
-        const ctx = await esbuild.context(buildConfig);
+        if (isWatch) {
+            // Start watch mode
+            const ctx = await esbuild.context(buildConfig);
+            await ctx.watch();
+            console.log("Watching for changes...");
 
-        // Watch for changes
-        await ctx.watch();
-        console.log("Watching for changes...");
-
-        movePluginFiles();
+            movePluginFiles();
+        } else {
+            // Single build for CI/CD
+            await esbuild.build(buildConfig);
+            console.log("Build complete.");
+        }
     } catch (error) {
         console.error("Build failed:", error);
         process.exit(1);
