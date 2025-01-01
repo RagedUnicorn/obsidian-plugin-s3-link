@@ -1,4 +1,3 @@
-import { PluginSettings } from "../settings/pluginSettings";
 import { Readable } from "stream";
 
 import AwsS3Client from "./awsS3Client";
@@ -16,7 +15,6 @@ export default class DownloadManager {
 
     public constructor(
         private awsS3Client: AwsS3Client,
-        private pluginSettings: PluginSettings,
         private localStorageFileLinkCache: LocalStorageFileLinkCache,
         private fileCache: FileCache
     ) {}

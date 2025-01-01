@@ -14,16 +14,17 @@ import Config from "../config/config";
 import { PluginSettings } from "../settings/pluginSettings";
 import AwsCredentialProvider from "../aws/awsCredentialProvider";
 import AwsCredential from "../aws/awsCredential";
+import PluginStateManager from "../core/pluginStateManager";
 
 export default class AwsS3Client {
     private readonly moduleName = "AwsS3Client";
     private awsS3Client!: S3Client;
     private awsCredentialProvider = new AwsCredentialProvider();
 
-    private pluginSettings: PluginSettings;
-
-    constructor(pluginSettings: PluginSettings) {
-        this.pluginSettings = pluginSettings;
+    constructor(private pluginStateManager: PluginStateManager) {
+        this.pluginStateManager.subscribeToSettings(
+            this.updateSettings.bind(this)
+        );
     }
 
     /**
@@ -41,16 +42,30 @@ export default class AwsS3Client {
     }
 
     /**
+     * Update the plugin settings dynamically.
+     *
+     * @param newSettings - Updated plugin settings.
+     */
+    public async updateSettings(newSettings: PluginSettings) {
+        console.debug(`${this.moduleName}::updateSettings - Updating settings`);
+
+        // recreate the S3 client with the new settings
+        await this.createS3Client();
+
+        console.debug(`${this.moduleName}::updateSettings - Settings updated`);
+    }
+
+    /**
      * Create an S3 client using the provided settings.
      */
     private async createS3Client() {
         const credentials: AwsCredential | null =
             await this.awsCredentialProvider.getAwsCredentials(
-                this.pluginSettings.profile
+                this.pluginStateManager.getSettings().profile
             );
         if (credentials) {
             this.awsS3Client = new S3Client({
-                region: this.pluginSettings.region,
+                region: this.pluginStateManager.getSettings().region,
                 credentials: {
                     accessKeyId: credentials.accessKeyId,
                     secretAccessKey: credentials.secretAccessKey,
@@ -86,7 +101,7 @@ export default class AwsS3Client {
         try {
             // Create a GetObjectCommand with the bucket and object key
             const command = new GetObjectCommand({
-                Bucket: this.pluginSettings.bucketName,
+                Bucket: this.pluginStateManager.getSettings().bucketName,
                 Key: objectKey,
             });
 
@@ -165,7 +180,7 @@ export default class AwsS3Client {
         }
 
         const command = new ListObjectVersionsCommand({
-            Bucket: this.pluginSettings.bucketName,
+            Bucket: this.pluginStateManager.getSettings().bucketName,
             Prefix: objectKey,
         });
         const response = await this.awsS3Client.send(command);
@@ -203,7 +218,7 @@ export default class AwsS3Client {
 
         try {
             const command = new GetObjectCommand({
-                Bucket: this.pluginSettings.bucketName,
+                Bucket: this.pluginStateManager.getSettings().bucketName,
                 Key: objectKey,
             });
             const response = await this.awsS3Client.send(command);
@@ -271,7 +286,7 @@ export default class AwsS3Client {
 
         try {
             const headCommand = new HeadObjectCommand({
-                Bucket: this.pluginSettings.bucketName,
+                Bucket: this.pluginStateManager.getSettings().bucketName,
                 Key: objectKey,
             });
 

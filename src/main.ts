@@ -1,7 +1,9 @@
 import { Plugin } from "obsidian";
 
 import { PluginSettings } from "./settings/pluginSettings";
-import { DEFAULT_SETTINGS } from "./settings/defaultSettings";
+
+import PluginSettingsTab from "./settings/settingsTab";
+import PluginStateManager from "./core/pluginStateManager";
 import Config from "./config/config";
 
 import AwsS3Client from "./network/awsS3Client";
@@ -21,7 +23,7 @@ import LinkProcessor from "./core/linkProcessor";
  */
 export default class S3LinkPlugin extends Plugin {
     private readonly moduleName = "S3LinkPlugin";
-    pluginSettings!: PluginSettings;
+    pluginStateManager!: PluginStateManager;
     awsS3Client!: AwsS3Client;
     markdownPostProcessor!: MarkdownPostProcessor;
     codeMirrorExtension!: CodeMirrorExtension;
@@ -38,7 +40,8 @@ export default class S3LinkPlugin extends Plugin {
      */
     async onload() {
         try {
-            await this.loadSettings();
+            await this.setupPluginStateManager();
+            this.setupSettingsTap();
             await this.setupFileCache();
             this.htmlProcessor = new HtmlProcessor(this.fileCache, this.app);
             this.normalizedVaultName = normalizeVaultName(
@@ -69,25 +72,25 @@ export default class S3LinkPlugin extends Plugin {
     }
 
     /**
-     * Load obsidian settings for data.json or fallback to default settings.
+     * Setup the plugin state manager for the plugin.
      */
-    async loadSettings() {
-        console.debug(
-            `${this.moduleName}::loadSettings - Loading settings for ${Config.PLUGIN_NAME}`
-        );
+    private async setupPluginStateManager() {
+        this.pluginStateManager = new PluginStateManager(this);
+        await this.pluginStateManager.initialize();
+    }
 
-        this.pluginSettings = Object.assign(
-            {},
-            DEFAULT_SETTINGS,
-            await this.loadData()
-        );
+    /**
+     * Setup the settings tab for the plugin.
+     */
+    private setupSettingsTap() {
+        this.addSettingTab(new PluginSettingsTab(this.app, this));
     }
 
     /**
      * Setup the AWS S3 client for the plugin.
      */
     private async setupAwsS3Client() {
-        this.awsS3Client = new AwsS3Client(this.pluginSettings);
+        this.awsS3Client = new AwsS3Client(this.pluginStateManager);
         await this.awsS3Client.init();
     }
 
@@ -97,7 +100,6 @@ export default class S3LinkPlugin extends Plugin {
     private setupDownloadManager() {
         this.downloadManager = new DownloadManager(
             this.awsS3Client,
-            this.pluginSettings,
             this.localStorageFileLinkCache,
             this.fileCache
         );
@@ -111,7 +113,6 @@ export default class S3LinkPlugin extends Plugin {
             this.fileCache,
             this.localStorageSignedLinkCache,
             this.localStorageFileLinkCache,
-            this.pluginSettings,
             this.awsS3Client,
             this.downloadManager
         );

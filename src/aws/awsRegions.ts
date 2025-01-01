@@ -1,4 +1,4 @@
-export const REGIONS = {
+export const AWS_REGIONS = {
     "us-east-2": "US East (Ohio)",
     "us-east-1": "US East (N. Virginia)",
     "us-west-1": "US West (N. California)",

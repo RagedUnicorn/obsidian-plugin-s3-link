@@ -7,7 +7,6 @@ import {
 
 import AwsS3Client from "../network/awsS3Client";
 import DownloadManager from "../network/downloadManager";
-import { PluginSettings } from "../settings/pluginSettings";
 
 import FileCache from "../cache/fileCache";
 import LocalStorageSignedLinkCache from "../cache/localStorageSignedLinkCache";
@@ -23,7 +22,6 @@ export default class LinkProcessor {
         private fileCache: FileCache,
         private localStorageSignedLinkCache: LocalStorageSignedLinkCache,
         private localStorageFileLinkCache: LocalStorageFileLinkCache,
-        private pluginSettings: PluginSettings,
         private awsS3Client: AwsS3Client,
         private downloadManager: DownloadManager
     ) {
