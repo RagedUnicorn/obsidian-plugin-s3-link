@@ -1,3 +1,4 @@
+import S3Link from "./s3Link";
 /**
  * S3SignedLink
  *
@@ -8,9 +9,7 @@
  *
  * The exception is when the object is deleted, in which case the signed link will no longer work.
  */
-type S3SignedLink = {
-    objectKey: string;
-    lastUpdate: number;
+type S3SignedLink = S3Link & {
     signedUrl: string;
 };
 

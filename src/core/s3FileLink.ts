@@ -1,12 +1,11 @@
+import S3Link from "./s3Link";
 /**
  * S3FileLink
  *
  * Represents all relevant data for a file link to an S3 object
  *
  */
-type S3FileLink = {
-    objectKey: string;
-    lastUpdate: number;
+type S3FileLink = S3Link & {
     versionId: string;
 };
 
