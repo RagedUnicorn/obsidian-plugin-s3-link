@@ -3,7 +3,7 @@ import S3SignedLink from "../core/s3SignedLink";
 import S3FileLink from "../core/s3FileLink";
 import { normalizeObjectKey } from "../utils/normalizeUtils";
 
-export default class LocalStorageCache {
+export default abstract class LocalStorageCache {
     protected readonly moduleName!: string;
 
     constructor(protected cachePath: string, protected vaultName: string) {}
