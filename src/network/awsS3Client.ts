@@ -11,7 +11,6 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { Readable } from "stream";
 
 import Config from "../config/config";
-import { PluginSettings } from "../settings/pluginSettings";
 import AwsCredentialProvider from "../aws/awsCredentialProvider";
 import AwsCredential from "../aws/awsCredential";
 import PluginStateManager from "../core/pluginStateManager";
@@ -44,9 +43,8 @@ export default class AwsS3Client {
     /**
      * Update the plugin settings dynamically.
      *
-     * @param newSettings - Updated plugin settings.
      */
-    public async updateSettings(newSettings: PluginSettings) {
+    public async updateSettings() {
         console.debug(`${this.moduleName}::updateSettings - Updating settings`);
 
         // recreate the S3 client with the new settings
@@ -220,6 +218,7 @@ export default class AwsS3Client {
             const command = new GetObjectCommand({
                 Bucket: this.pluginStateManager.getSettings().bucketName,
                 Key: objectKey,
+                VersionId: versionId,
             });
             const response = await this.awsS3Client.send(command);
 

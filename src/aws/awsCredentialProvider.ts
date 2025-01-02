@@ -113,6 +113,10 @@ export default class AwsCredentialProvider {
 
             return filePath;
         } catch (error) {
+            console.error(
+                `${this.moduleName}: Failed to find credentials file`,
+                error
+            );
             throw new Error("Cannot find credentials file");
         }
     }

@@ -3,6 +3,7 @@ import Resolver from "../../../src/resolvers/resolver";
 class TestResolver extends Resolver {
     protected targetElement = "testElement";
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     public resolveHtmlElement(element: HTMLElement) {
         return {
             objectKeys: this.objectKeys,

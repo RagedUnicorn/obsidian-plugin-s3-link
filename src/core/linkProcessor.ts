@@ -268,7 +268,7 @@ export default class LinkProcessor {
      * Setup download finished event listener.
      */
     private setupDownloadFinishedEventListener() {
-        emitter.on(EVENT_DOWNLOAD_FINISHED, ({ record, stream }) => {
+        emitter.on(EVENT_DOWNLOAD_FINISHED, ({ record }) => {
             console.debug(
                 `${this.moduleName}::setupDownloadFinishedEventListener - Received Event EVENT_DOWNLOAD_FINISHED`
             );
@@ -305,7 +305,8 @@ export default class LinkProcessor {
             }
         } catch (error) {
             console.warn(
-                `${this.moduleName}::checkIfSignedLinkObjectExists - Object ${objectKey} does not exist in S3 bucket or access failed`
+                `${this.moduleName}::checkIfSignedLinkObjectExists - Object ${objectKey} does not exist in S3 bucket or access failed`,
+                error
             );
 
             return false;

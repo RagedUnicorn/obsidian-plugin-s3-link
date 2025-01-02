@@ -1,4 +1,4 @@
-import { App, debounce } from "obsidian";
+import { debounce } from "obsidian";
 
 import {
     ViewPlugin,
@@ -38,10 +38,10 @@ export default class CodeMirrorExtension {
      * Build a CodeMirror extension for the plugin.
      * This extension will be used to monitor the CodeMirror editor for changes.
      *
-     * @param app
      * @returns
+     *  The CodeMirror extension
      */
-    public createCodeMirrorExtension(app: App): ViewPlugin<PluginValue> {
+    public createCodeMirrorExtension(): ViewPlugin<PluginValue> {
         const updateView = this.throttleUpdateView.bind(this);
         const moduleName = this.moduleName;
 

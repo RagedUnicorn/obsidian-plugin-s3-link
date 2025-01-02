@@ -197,7 +197,7 @@ export default class S3LinkPlugin extends Plugin {
 
         this.codeMirrorExtension = new CodeMirrorExtension(this);
         this.registerEditorExtension(
-            this.codeMirrorExtension.createCodeMirrorExtension(this.app)
+            this.codeMirrorExtension.createCodeMirrorExtension()
         );
 
         console.info(
