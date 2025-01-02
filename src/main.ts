@@ -1,10 +1,7 @@
 import { Plugin } from "obsidian";
 
-import { PluginSettings } from "./settings/pluginSettings";
-
 import PluginSettingsTab from "./settings/settingsTab";
 import PluginStateManager from "./core/pluginStateManager";
-import Config from "./config/config";
 
 import AwsS3Client from "./network/awsS3Client";
 import CodeMirrorExtension from "./editor/codeMirrorExtension";

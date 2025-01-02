@@ -109,7 +109,7 @@ export default class PluginSettingsTab extends PluginSettingTab {
             });
         }
 
-        this.awsAccessKeySetting! = new Setting(containerEl)
+        this.awsAccessKeySetting = new Setting(containerEl)
             .setName("AWS Access Key ID")
             .setDesc("The Access Key ID of your AWS IAM account")
             .addText((text) =>
@@ -152,8 +152,8 @@ export default class PluginSettingsTab extends PluginSettingTab {
                 Config.AWS_PROFILE_NAME_NONE ||
             this.pluginStateManager.getSettings().profile === ""
         ) {
-            this.awsAccessKeySetting!.setDisabled(false);
-            this.awsSecretAccessKeySetting!.setDisabled(false);
+            this.awsAccessKeySetting.setDisabled(false);
+            this.awsSecretAccessKeySetting.setDisabled(false);
         } else {
             this.awsAccessKeySetting.setDisabled(true);
             this.awsSecretAccessKeySetting.setDisabled(true);
