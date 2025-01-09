@@ -1,0 +1,11 @@
+{
+    "name": "Obsidian Plugin S3 Link",
+    "context": "..",
+    "dockerFile": "Dockerfile",
+    "settings": {
+        "terminal.integrated.shell.linux": "/bin/bash"
+    },
+    "extensions": ["dbaeumer.vscode-eslint", "esbenp.prettier-vscode"],
+    "postCreateCommand": "npm install",
+    "remoteUser": "node"
+}
