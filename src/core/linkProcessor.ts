@@ -64,7 +64,10 @@ export default class LinkProcessor {
 
             const cachedSignedLink = this.findCachedSignedLink(objectKey);
 
-            if (cachedSignedLink) {
+            if (
+                cachedSignedLink &&
+                !this.isCacheSignedLinkExpired(cachedSignedLink)
+            ) {
                 this.emitSignLinkProcessed(cachedSignedLink, htmlElements);
                 continue;
             }
@@ -118,6 +121,18 @@ export default class LinkProcessor {
      */
     private findCachedSignedLink(objectKey: string): S3SignedLink | null {
         return this.localStorageSignedLinkCache.findCachedSignedLink(objectKey);
+    }
+
+    /**
+     *
+     * @param cachedSignedLink
+     * @returns Whether the cached signed link is expired or not
+     *  True if the cached signed link is expired, false otherwise
+     */
+    private isCacheSignedLinkExpired(cachedSignedLink: S3SignedLink): boolean {
+        return this.localStorageSignedLinkCache.isS3SignedLinkCacheItemExpired(
+            cachedSignedLink.lastUpdate
+        );
     }
 
     /**
