@@ -28,6 +28,8 @@ export default class AwsS3Client {
 
     /**
      * Initialize the AWS client asynchronously.
+     *
+     * @throws Error if the client cannot be initialized.
      */
     public async init() {
         await this.createS3Client();
@@ -35,6 +37,8 @@ export default class AwsS3Client {
 
     /**
      * Unload the AWS client.
+     *
+     * Cleans up resources and destroys the client instance.
      */
     public unload() {
         this.awsS3Client?.destroy();
@@ -43,11 +47,11 @@ export default class AwsS3Client {
     /**
      * Update the plugin settings dynamically.
      *
+     * Recreates the S3 client with the updated settings.
      */
     public async updateSettings() {
         console.debug(`${this.moduleName}::updateSettings - Updating settings`);
 
-        // recreate the S3 client with the new settings
         await this.createS3Client();
 
         console.debug(`${this.moduleName}::updateSettings - Settings updated`);
@@ -55,6 +59,8 @@ export default class AwsS3Client {
 
     /**
      * Create an S3 client using the provided settings.
+     *
+     * @throws Error if AWS credentials are missing or invalid.
      */
     private async createS3Client() {
         const credentials: AwsCredential | null =
@@ -74,7 +80,7 @@ export default class AwsS3Client {
              * If the credentials are not found, set the plugin state to error and reset the profile setting.
              * This case can happen if the user had a profile set and then deleted the profile from the credentials file.
              */
-            // TODO
+            // TODO Throw an error instead of console.error
             console.error("Credentials not found");
         }
     }
@@ -82,28 +88,25 @@ export default class AwsS3Client {
     /**
      * Get a signed URL for an object in the S3 bucket.
      *
-     * @param objectKey
-     * @returns
+     * @param objectKey - The key of the object in S3.
+     *
+     * @returns A signed URL for the object.
+     *
+     * @throws Error if the client is not initialized or the signed URL cannot be generated.
      */
     public async getSignedUrlForObject(objectKey: string): Promise<string> {
         console.debug(
             `${this.moduleName}::getSignedUrlForObject - Retrieving signed URL for object ${objectKey}`
         );
 
-        if (!this.awsS3Client) {
-            throw new Error(
-                `${this.moduleName}::getSignedUrlForObject - S3Client not initialized`
-            );
-        }
+        this.isClientInitialized();
 
         try {
-            // Create a GetObjectCommand with the bucket and object key
             const command = new GetObjectCommand({
                 Bucket: this.pluginStateManager.getSettings().bucketName,
                 Key: objectKey,
             });
 
-            // Generate the signed URL
             const signedUrl = await getSignedUrl(this.awsS3Client, command, {
                 expiresIn: Config.S3_SIGNED_LINK_EXPIRATION_TIME_SECONDS,
             });
@@ -120,11 +123,13 @@ export default class AwsS3Client {
     }
 
     /**
-     * Retrievees the latest versionId for the given objectKey.
+     * Retrieve the latest version ID for the given object key.
      *
-     * @param objectKey The objectKey of the object to retrieve the latest versionId for
+     * @param objectKey - The key of the object in S3.
      *
-     * @returns Promise<string | undefined> containing the latest versionId or undefined if the object does not exist
+     * @returns The latest version ID of the object or undefined if not found.
+     *
+     * @throws Error if the metadata retrieval fails.
      */
     public async getLatestObjectVersion(
         objectKey: string
@@ -133,7 +138,7 @@ export default class AwsS3Client {
             const response = await this.getObjectMetadata(objectKey);
             const VERSION_LATEST = 0;
 
-            // Filter the object versions to only contain the exact objectKey
+            // filter the object versions to only contain the exact objectKey
             const exactFilteredVersion =
                 response.Versions?.filter(
                     (version) => version.Key === objectKey
@@ -165,17 +170,20 @@ export default class AwsS3Client {
     /**
      * Get the metadata for an object in the S3 bucket.
      *
-     * @param objectKey
-     * @returns
+     * @param objectKey - The key of the object in S3.
+     *
+     * @returns The metadata of the object.
+     *
+     * @throws Error if the client is not initialized or the metadata cannot be retrieved.
      */
     private async getObjectMetadata(
         objectKey: string
     ): Promise<ListObjectVersionsCommandOutput> {
-        if (!this.awsS3Client) {
-            throw new Error(
-                `${this.moduleName}::getObjectMetadata - S3Client not initialized`
-            );
-        }
+        console.debug(
+            `${this.moduleName}::getObjectMetadata - Retrieving metadata for object ${objectKey}`
+        );
+
+        this.isClientInitialized();
 
         const command = new ListObjectVersionsCommand({
             Bucket: this.pluginStateManager.getSettings().bucketName,
@@ -192,13 +200,15 @@ export default class AwsS3Client {
     }
 
     /**
-     * Get an object from the S3 bucket.
+     * Get an object from the S3 bucket as a Readable stream.
      *
-     * This method returns a Readable stream that can be used to read the object.
+     * @param objectKey - The key of the object in S3.
      *
-     * @param objectKey
-     * @param versionId
-     * @returns
+     * @param versionId - The version ID of the object.
+     *
+     * @returns A Readable stream of the object.
+     *
+     * @throws Error if the client is not initialized or the object cannot be retrieved.
      */
     public async getObject(
         objectKey: string,
@@ -208,11 +218,7 @@ export default class AwsS3Client {
             `${this.moduleName}::getObject - Retrieving object ${objectKey}`
         );
 
-        if (!this.awsS3Client) {
-            throw new Error(
-                `${this.moduleName}::getObject - S3Client not initialized`
-            );
-        }
+        this.isClientInitialized();
 
         try {
             const command = new GetObjectCommand({
@@ -245,10 +251,10 @@ export default class AwsS3Client {
 
     /**
      * Convert a browser stream to a Node.js Readable stream.
-     * This is required because the AWS SDK for JavaScript v3 returns a browser stream.
      *
-     * @param browserStream
-     * @returns
+     * @param browserStream - The browser stream to convert.
+     *
+     * @returns A Node.js Readable stream.
      */
     private browserStreamToReadable(browserStream: ReadableStream): Readable {
         const reader = browserStream.getReader();
@@ -267,8 +273,11 @@ export default class AwsS3Client {
     /**
      * Check if an object exists in the S3 bucket.
      *
-     * @param objectKey
-     * @returns boolean indicating if the object exists
+     * @param objectKey - The key of the object in S3.
+     *
+     * @returns A boolean indicating whether the object exists.
+     *
+     * @throws Error if the client is not initialized or the existence check fails.
      */
     public async doesFileForObjectKeyExist(
         objectKey: string
@@ -277,11 +286,7 @@ export default class AwsS3Client {
             `${this.moduleName}::doesFileForObjectKeyExist - Checking if object ${objectKey} exists in S3 Bucket`
         );
 
-        if (!this.awsS3Client) {
-            throw new Error(
-                `${this.moduleName}::doesFileForObjectKeyExist - S3Client not initialized`
-            );
-        }
+        this.isClientInitialized();
 
         try {
             const headCommand = new HeadObjectCommand({
@@ -299,6 +304,19 @@ export default class AwsS3Client {
             handleS3Error(error, this.moduleName, "doesFileForObjectKeyExist");
 
             return false;
+        }
+    }
+
+    /**
+     * Check if the awsS3Client is initialized.
+     *
+     * @throws Error if the client is not initialized.
+     */
+    private async isClientInitialized() {
+        if (!this.awsS3Client) {
+            throw new Error(
+                `${this.moduleName}::isClientInitialized - S3Client not initialized`
+            );
         }
     }
 }
