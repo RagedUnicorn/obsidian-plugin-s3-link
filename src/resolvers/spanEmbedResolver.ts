@@ -10,7 +10,7 @@ export default class SpanEmbedResolver extends Resolver {
     }
 
     /**
-     * Resolve all audio tags that contain a link to an S3 object in the plugins expected format.
+     * Resolve all span tags that contain a link to an S3 object in the plugins expected format.
      *
      * @param element An HTMLElement containing the rendered markdown content
      *
