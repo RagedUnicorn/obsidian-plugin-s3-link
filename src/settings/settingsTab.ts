@@ -1,8 +1,9 @@
-import { App, PluginSettingTab, Setting } from "obsidian";
+import { App, PluginSettingTab, Setting, TextComponent } from "obsidian";
 
 import S3LinkPlugin from "../main";
 import { DEFAULT_SETTINGS } from "./defaultSettings";
 import Config from "../config/config";
+import { trimWhitespace } from "../utils/formatterUtils";
 
 import { AWS_REGIONS } from "../aws/awsRegions";
 import AwsProfile from "../aws/awsProfile";
@@ -34,11 +35,15 @@ export default class PluginSettingsTab extends PluginSettingTab {
                     .setPlaceholder(DEFAULT_SETTINGS.bucketName ?? "")
                     .setValue(this.pluginStateManager.getSettings().bucketName)
                     .onChange(async (value) => {
+                        const formatedValue = trimWhitespace(value);
+
                         this.pluginStateManager.getSettings().bucketName =
-                            value;
+                            formatedValue;
                         await this.pluginStateManager.updateSettings({
-                            bucketName: value,
+                            bucketName: formatedValue,
                         });
+
+                        text.setValue(formatedValue);
                     })
             );
 
@@ -117,11 +122,15 @@ export default class PluginSettingsTab extends PluginSettingTab {
                     .setPlaceholder(DEFAULT_SETTINGS.accessKeyId ?? "")
                     .setValue(this.pluginStateManager.getSettings().accessKeyId)
                     .onChange(async (value) => {
+                        const formatedValue = trimWhitespace(value);
+
                         this.pluginStateManager.getSettings().accessKeyId =
-                            value;
+                            formatedValue;
                         await this.pluginStateManager.updateSettings({
-                            accessKeyId: value,
+                            accessKeyId: formatedValue,
                         });
+
+                        text.setValue(formatedValue);
                     })
             );
 
@@ -135,11 +144,15 @@ export default class PluginSettingsTab extends PluginSettingTab {
                         this.pluginStateManager.getSettings().secretAccessKey
                     )
                     .onChange(async (value) => {
+                        const formatedValue = trimWhitespace(value);
+
                         this.pluginStateManager.getSettings().secretAccessKey =
-                            value;
+                            formatedValue;
                         await this.pluginStateManager.updateSettings({
-                            secretAccessKey: value,
+                            secretAccessKey: formatedValue,
                         });
+
+                        text.setValue(formatedValue);
                     })
             );
 
@@ -147,16 +160,24 @@ export default class PluginSettingsTab extends PluginSettingTab {
     }
 
     private shouldEnableLocalCredentials() {
-        if (
-            this.pluginStateManager.getSettings().profile ===
-                Config.AWS_PROFILE_NAME_NONE ||
-            this.pluginStateManager.getSettings().profile === ""
-        ) {
-            this.awsAccessKeySetting.setDisabled(false);
-            this.awsSecretAccessKeySetting.setDisabled(false);
-        } else {
+        const isProfileSet =
+            this.pluginStateManager.getSettings().profile !==
+                Config.AWS_PROFILE_NAME_NONE &&
+            this.pluginStateManager.getSettings().profile !== "";
+
+        if (isProfileSet) {
+            const accessKeyComponent = this.awsAccessKeySetting
+                .components[0] as TextComponent;
+            const secretKeyComponent = this.awsSecretAccessKeySetting
+                .components[0] as TextComponent;
+
+            accessKeyComponent.setValue("");
+            secretKeyComponent.setValue("");
             this.awsAccessKeySetting.setDisabled(true);
             this.awsSecretAccessKeySetting.setDisabled(true);
+        } else {
+            this.awsAccessKeySetting.setDisabled(false);
+            this.awsSecretAccessKeySetting.setDisabled(false);
         }
     }
 }
