@@ -24,7 +24,8 @@ data "aws_iam_policy_document" "s3_test_user_access_policy" {
     ]
 
     resources = [
-      "arn:aws:s3:::${var.bucket_name}"
+      "arn:aws:s3:::${var.private_bucket_name}",
+      "arn:aws:s3:::${var.public_bucket_name}"
     ]
   }
 
@@ -38,7 +39,8 @@ data "aws_iam_policy_document" "s3_test_user_access_policy" {
     ]
 
     resources = [
-      "arn:aws:s3:::${var.bucket_name}/*"
+      "arn:aws:s3:::${var.private_bucket_name}/*",
+      "arn:aws:s3:::${var.public_bucket_name}/*"
     ]
   }
 

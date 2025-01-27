@@ -11,9 +11,16 @@ variable "aws_region" {
   default = "eu-central-1"
 }
 
-variable "bucket_name" {
+variable "private_bucket_name" {
   type        = string
   description = "Name of the S3 Asset Bucket"
 
-  default = "ragedunicorn-obsidian-plugin-s3-link-test-assets"
+  default = "ragedunicorn-obsidian-plugin-s3-link-test-private-assets"
+}
+
+variable "public_bucket_name" {
+  type        = string
+  description = "Name of the S3 Asset Bucket"
+
+  default = "ragedunicorn-obsidian-plugin-s3-link-test-public-assets"
 }

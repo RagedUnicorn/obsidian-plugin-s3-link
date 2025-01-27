@@ -1,6 +1,11 @@
-output "bucket_arn" {
-  description = "The ARN of the created S3 test assets bucket"
-  value       = aws_s3_bucket.assets.arn
+output "private_bucket_arn" {
+  description = "The ARN of the created S3 test private assets bucket"
+  value       = aws_s3_bucket.private_assets.arn
+}
+
+output "public_bucket_arn" {
+  description = "The ARN of the created S3 test public assets bucket"
+  value       = aws_s3_bucket.public_assets.arn
 }
 
 output "iam_arn" {
