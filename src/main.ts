@@ -14,6 +14,7 @@ import LocalStorageSignedLinkCache from "./cache/localStorageSignedLinkCache";
 import LocalStorageFileLinkCache from "./cache/localStorageFileLinkCache";
 import DownloadManager from "./network/downloadManager";
 import LinkProcessor from "./core/linkProcessor";
+import ResetCacheLocalCommand from "./commands/clearCacheLocalCommand";
 
 /**
  * Entrypoint class for the S3LinkPlugin.
@@ -49,6 +50,7 @@ export default class S3LinkPlugin extends Plugin {
             this.setupDownloadManager();
             this.setupLinkProcessor();
             this.registerEditorTools();
+            this.registerPluginCommands();
         } catch (error) {
             console.error(
                 `${this.moduleName}::onload - Error during initialization`,
@@ -202,6 +204,21 @@ export default class S3LinkPlugin extends Plugin {
 
         console.info(
             `${this.moduleName}::registerPluginCodeMirrorExtension - CodeMirrorExtension registered`
+        );
+    }
+
+    /**
+     * Register the plugin commands.
+     */
+    private registerPluginCommands() {
+        console.info(
+            `${this.moduleName}::registerPluginCommands - Registering plugin commands`
+        );
+
+        new ResetCacheLocalCommand().addCommand(this);
+
+        console.info(
+            `${this.moduleName}::registerPluginCommands - Plugin commands registered`
         );
     }
 }

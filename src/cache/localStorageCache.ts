@@ -76,7 +76,6 @@ export default abstract class LocalStorageCache {
         const localStorageItems = Object.keys(window.localStorage.storage);
 
         localStorageItems.forEach((key) => {
-            console.log("searching for Key: ", key);
             if (key.startsWith(baseKey)) {
                 localStorage.removeItem(key);
 

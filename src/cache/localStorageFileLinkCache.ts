@@ -68,6 +68,11 @@ export default class LocalStorageFileLinkCache extends LocalStorageCache {
         this.clearLocalStorage(this.cachePath);
     }
 
+    /**
+     * Deletes a file link from the cache.
+     *
+     * @param objectKey
+     */
     public deleteFileLinkFromCache(objectKey: string) {
         console.debug(
             `${this.moduleName}::deleteFileLinkFromCache - Deleting file link from cache`,

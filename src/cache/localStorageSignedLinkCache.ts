@@ -71,6 +71,20 @@ export default class LocalStorageSignedLinkCache extends LocalStorageCache {
     }
 
     /**
+     * Deletes a signed link from the cache.
+     *
+     * @param objectKey
+     */
+    public deleteSignLinkFromCache(objectKey: string) {
+        console.debug(
+            `${this.moduleName}::deleteSignedLinkFromCache - Deleting signed link from cache`,
+            objectKey
+        );
+
+        this.removeItemFromLocalStorage(this.cachePath, objectKey);
+    }
+
+    /**
      * Checks if the cache item of a specific s3SignedLink is expired
      *
      * @param lastUpdate The lastUpdate timestamp of the cached item
