@@ -8,8 +8,12 @@ upload_to_bucket() {
   local bucket="$1"
 
   find "$FOLDER_PATH" -type f | while read -r file; do
-    echo "Uploading $file to $bucket"
-    aws s3 cp "$file" "$bucket"
+    relative_path=$(realpath --relative-to="$FOLDER_PATH" "$file")
+    folder=$(dirname "$relative_path")
+    target_path="$bucket/$folder/$(basename "$file")"
+
+    echo "Uploading $file to $target_path"
+    aws s3 cp "$file" "$target_path"
   done
   echo "Upload to $bucket complete."
 }
