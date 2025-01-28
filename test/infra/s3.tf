@@ -34,6 +34,17 @@ resource "aws_s3_bucket_public_access_block" "private_assets" {
   restrict_public_buckets = true
 }
 
+resource "aws_s3_bucket_cors_configuration" "private_assets" {
+  bucket = aws_s3_bucket.private_assets.id
+
+  cors_rule {
+    allowed_methods = ["GET", "HEAD"]
+    allowed_origins = ["*"]
+    allowed_headers = ["*"]
+    expose_headers  = ["ETag"]
+    max_age_seconds = 3000
+  }
+}
 
 resource "aws_s3_bucket" "public_assets" {
   bucket = var.public_bucket_name
@@ -75,4 +86,16 @@ resource "aws_s3_bucket_policy" "public_assets" {
       }
     ]
   })
+}
+
+resource "aws_s3_bucket_cors_configuration" "public_assets" {
+  bucket = aws_s3_bucket.public_assets.id
+
+  cors_rule {
+    allowed_methods = ["GET", "HEAD"]
+    allowed_origins = ["*"]
+    allowed_headers = ["*"]
+    expose_headers  = ["ETag"]
+    max_age_seconds = 3000
+  }
 }
