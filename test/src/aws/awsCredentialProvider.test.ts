@@ -1,5 +1,6 @@
 import * as fs from "fs";
 import * as os from "os";
+import * as path from "path";
 
 import AwsCredentialProvider from "../../../src/aws/awsCredentialProvider";
 import Config from "../../../src/config/config";
@@ -10,7 +11,8 @@ const mockOs = os as jest.Mocked<typeof os>;
 
 describe("AwsCredentialProvider", () => {
     let provider: AwsCredentialProvider;
-    const fakePath = "\\fake\\home\\.aws\\credentials";
+    const fakeHome = path.normalize("/fake/home");
+    const fakePath = path.join(fakeHome, Config.AWS_CREDENTIALS_FILE_PATH);
     const sampleIni = `
         [profile1]
         aws_access_key_id = ACCESSKEY1
@@ -24,7 +26,7 @@ describe("AwsCredentialProvider", () => {
     beforeEach(() => {
         provider = new AwsCredentialProvider();
 
-        mockOs.homedir.mockReturnValue("\\fake\\home");
+        mockOs.homedir.mockReturnValue(fakeHome);
 
         jest.spyOn(fs.promises, "access").mockResolvedValue(undefined);
         jest.spyOn(fs.promises, "readFile").mockResolvedValue(sampleIni);
