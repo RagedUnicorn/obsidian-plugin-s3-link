@@ -84,6 +84,26 @@ export default class FileCache {
     }
 
     /**
+     * Generates the cached filename based on objectKey and versionId.
+     * For versioned files: "versionId_filename.ext"
+     * For non-versioned files: "filename.ext"
+     *
+     * @param objectKey The S3 object key
+     * @param versionId The S3 object version ID
+     * @returns The filename to use in the cache
+     */
+    private getCachedFileName(objectKey: string, versionId: string): string {
+        const fileName = path.basename(objectKey);
+
+        if (versionId && versionId !== "null") {
+            const normalizedVersionId = normalizeVersionId(versionId);
+            return `${normalizedVersionId}_${fileName}`;
+        } else {
+            return fileName;
+        }
+    }
+
+    /**
      * Creates the cache folder in the root of the vault.
      */
     private async createCacheFolderInBasePath(): Promise<void> {
@@ -114,11 +134,10 @@ export default class FileCache {
         versionId: string,
         stream: Readable
     ): Promise<void> {
-        const fileExtension = path.extname(objectKey);
-        const normalizedVersionId = normalizeVersionId(versionId);
+        const cachedFileName = this.getCachedFileName(objectKey, versionId);
         const objectPath = normalizePath(
-            `${this.getFullCachePath()}\\${normalizedVersionId}${fileExtension}`
-        ); // full path for writing file
+            `${this.getFullCachePath()}/${cachedFileName}`
+        );
 
         const writeStream = fs.createWriteStream(objectPath);
         this.addOpenStream(writeStream);
@@ -204,18 +223,19 @@ export default class FileCache {
     /**
      * Retrieves a file from the cache folder.
      *
-     * @param objectKey
-     * @param versionId
-     * @returns the file if it exists, null otherwise
+     * @param s3FileLink
+     * @returns the file resource path if it exists
      */
     public async getFileFromCacheFolder(
         s3FileLink: S3FileLink
     ): Promise<string> {
-        const fileExtension = path.extname(s3FileLink.objectKey);
-        const normalizedVersionId = normalizeVersionId(s3FileLink.versionId);
+        const cachedFileName = this.getCachedFileName(
+            s3FileLink.objectKey,
+            s3FileLink.versionId
+        );
         // important to use a relative path here
         const normalizedPath = normalizePath(
-            `${Config.S3_FILE_LINK_CACHE_FOLDER}\\${normalizedVersionId}${fileExtension}`
+            `${Config.S3_FILE_LINK_CACHE_FOLDER}/${cachedFileName}`
         );
 
         return this.getVaultResourcePath(s3FileLink, normalizedPath);
@@ -291,9 +311,9 @@ export default class FileCache {
         objectKey: string,
         versionId: string
     ): Promise<boolean> {
-        const fileExtension = path.extname(objectKey);
+        const cachedFileName = this.getCachedFileName(objectKey, versionId);
         const normalizedPath = normalizePath(
-            `${Config.S3_FILE_LINK_CACHE_FOLDER}\\${versionId}${fileExtension}`
+            `${Config.S3_FILE_LINK_CACHE_FOLDER}/${cachedFileName}`
         );
 
         return this.pathExists(normalizedPath);
