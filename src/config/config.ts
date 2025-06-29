@@ -14,11 +14,11 @@ export default abstract class Config {
     static readonly S3_FILE_LINK_PREFIX = "s3";
     static readonly S3_FILE_LINK_DOWNLOAD_TIMEOUT = 120000; // 2 minutes
     static readonly S3_FILE_LINK_EXPIRATION_TIME_SECONDS = 60; // 1 minute
-    static readonly S3_FILE_LINKS_CACHE_PATH = "s3FileLinks";
+    static readonly S3_FILE_LINKS_CACHE_PATH = "s3-file-links";
     static readonly S3_FILE_LINK_CACHE_FOLDER = "s3_link_cache";
 
     // s3 signed link
     static readonly S3_SIGNED_LINK_PREFIX = "s3-sign";
     static readonly S3_SIGNED_LINK_EXPIRATION_TIME_SECONDS = 60 * 60 * 24 * 7; // 7 days
-    static readonly S3_SIGNED_LINKS_CACHE_PATH = "s3SignedLinks";
+    static readonly S3_SIGNED_LINKS_CACHE_PATH = "s3-signed-links";
 }
