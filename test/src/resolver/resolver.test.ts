@@ -1,7 +1,8 @@
-import Resolver from "../../../src/resolvers/resolver";
+import Resolver, { TargetElement } from "../../../src/resolvers/resolver";
 
 class TestResolver extends Resolver {
-    protected targetElement = "testElement";
+    protected override readonly moduleName = "TestModule";
+    protected readonly targetElement: TargetElement = "span.internal-embed";
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     public resolveHtmlElement(element: HTMLElement) {
@@ -59,12 +60,7 @@ describe("Resolver", () => {
             .spyOn(console, "debug")
             .mockImplementation();
 
-        resolver["processValidObjectKey"](
-            "TestModule",
-            "validKey",
-            element,
-            false
-        );
+        resolver["processValidObjectKey"]("validKey", element, false);
 
         expect(resolver["objectKeys"].has("validKey")).toBe(true);
         expect(consoleDebugSpy).toHaveBeenCalledWith(
@@ -79,12 +75,7 @@ describe("Resolver", () => {
         const element = document.createElement("div");
         const consoleWarnSpy = jest.spyOn(console, "warn").mockImplementation();
 
-        resolver["processValidObjectKey"](
-            "TestModule",
-            "invalidKey/",
-            element,
-            false
-        );
+        resolver["processValidObjectKey"]("invalidKey/", element, false);
 
         expect(resolver["objectKeys"].size).toBe(0);
         expect(consoleWarnSpy).toHaveBeenCalledWith(

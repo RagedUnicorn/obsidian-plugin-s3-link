@@ -26,6 +26,7 @@ describe("LocalStorageFileLinkCache", () => {
     afterEach(() => {
         window.localStorage.setItem = originalSetItem;
         window.localStorage.removeItem = originalRemoveItem;
+        localStorageMock.clear();
     });
 
     describe("cacheFileLink", () => {

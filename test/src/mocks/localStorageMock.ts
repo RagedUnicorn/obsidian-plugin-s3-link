@@ -12,4 +12,11 @@ export const localStorageMock = {
     clear() {
         this.storage = {};
     },
+    get length() {
+        return Object.keys(this.storage).length;
+    },
+    key(index: number) {
+        const keys = Object.keys(this.storage);
+        return keys[index] || null;
+    },
 };
