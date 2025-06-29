@@ -9,7 +9,6 @@ export default class AwsCredential {
     accessKeyId: string;
     secretAccessKey: string;
 
-    /* eslint-disable @typescript-eslint/no-explicit-any */
     constructor(profileName: string, data: Record<string, string>) {
         this.profileName = profileName;
         this.accessKeyId = data.aws_access_key_id;
