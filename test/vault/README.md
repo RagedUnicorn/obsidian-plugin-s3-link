@@ -1,6 +1,6 @@
 # 🪨 obsidian-plugin-s3-link Test
 
-> All the documentation relevant to testing the plugin
+> Documentation for generating test resources
 
 ## Resources
 
@@ -138,28 +138,3 @@ ffmpeg -f lavfi -i color=c=white:s=1280x720:d=10 -f lavfi -i "sine=frequency=440
 ```shell
 ffmpeg -f lavfi -i color=c=white:s=1280x720:d=10 -f lavfi -i "sine=frequency=440:duration=10" -f lavfi -i "sine=frequency=554.37:duration=10" -f lavfi -i "sine=frequency=659.25:duration=10" -filter_complex "[1][2][3]amix=inputs=3:duration=first,volume=3[audio];[0]drawtext=text='S3-Video Test File WEBM':fontcolor=black:fontsize=72:x=(w-text_w)/2:y=(h-text_h)/2[v]" -map "[v]" -map "[audio]" -c:v libvpx -c:a libvorbis -b:a 192k s3_video_test_file.webm
 ```
-
-## License
-
-MIT License
-
-Copyright (c) 2025 Michael Wiesendanger
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
-LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
