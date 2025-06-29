@@ -6,28 +6,41 @@ import { Readable } from "stream";
 
 import Config from "../config/config";
 import S3FileLink from "../core/s3FileLink";
-import { normalizeVersionId } from "../utils/normalizeUtils";
+import {
+    normalizeVersionId,
+    normalizeBucketNameForFolder,
+} from "../utils/normalizeUtils";
+import PluginStateManager from "../core/pluginStateManager";
 
 export default class FileCache {
     private readonly moduleName = "FileCache";
     private openStreams: fs.WriteStream[] = [];
 
-    constructor(private app: App) {}
+    constructor(
+        private app: App,
+        private pluginStateManager: PluginStateManager
+    ) {}
 
     /**
      * Initializes the file cache by ensuring the cache folder exists.
      */
     public async init(): Promise<void> {
         try {
-            if (await this.isCacheFolderPresent()) {
-                console.info(
-                    `${this.moduleName}::init - Cache folder already exists`
-                );
-            } else {
+            // Create main cache folder if needed
+            if (!(await this.isCacheFolderPresent())) {
                 console.info(
                     `${this.moduleName}::init - Creating cache folder`
                 );
                 await this.createCacheFolderInBasePath();
+            }
+
+            // Create bucket-specific folder
+            const bucketCachePath = this.getRelativeBucketCachePath();
+            if (!(await this.pathExists(bucketCachePath))) {
+                console.info(
+                    `${this.moduleName}::init - Creating bucket cache folder: ${bucketCachePath}`
+                );
+                await this.app.vault.createFolder(bucketCachePath);
             }
         } catch (error) {
             console.error(
@@ -63,21 +76,43 @@ export default class FileCache {
     }
 
     /**
-     * Retrieves the full path to the cache folder.
+     * Retrieves the relative path to the bucket-specific cache folder.
      *
-     * @returns the normalized full path to the cache folder
+     * @returns the normalized relative path to the bucket cache folder
      */
-    private getFullCachePath(): string {
+    private getRelativeBucketCachePath(): string {
+        const bucketName = this.pluginStateManager.getSettings().bucketName;
+        const normalizedBucketName = normalizeBucketNameForFolder(bucketName);
+        const cachePath = normalizePath(
+            `${Config.S3_FILE_LINK_CACHE_FOLDER}/${normalizedBucketName}`
+        );
+
+        console.debug(
+            `${this.moduleName}::getRelativeBucketCachePath - Bucket cache path: ${cachePath}`
+        );
+
+        return cachePath;
+    }
+
+    /**
+     * Retrieves the full path to the bucket-specific cache folder.
+     *
+     * @returns the normalized full path to the bucket cache folder
+     */
+    private getFullBucketCachePath(): string {
         const basePath = (
             this.app.vault.adapter as FileSystemAdapter
         ).getBasePath();
 
+        const bucketName = this.pluginStateManager.getSettings().bucketName;
+        const normalizedBucketName = normalizeBucketNameForFolder(bucketName);
+
         const cachePath = normalizePath(
-            `${basePath}/${Config.S3_FILE_LINK_CACHE_FOLDER}`
+            `${basePath}/${Config.S3_FILE_LINK_CACHE_FOLDER}/${normalizedBucketName}`
         );
 
         console.debug(
-            `${this.moduleName}::getCachePath - Cache path: ${cachePath}`
+            `${this.moduleName}::getFullBucketCachePath - Full bucket cache path: ${cachePath}`
         );
 
         return cachePath;
@@ -136,7 +171,7 @@ export default class FileCache {
     ): Promise<void> {
         const cachedFileName = this.getCachedFileName(objectKey, versionId);
         const objectPath = normalizePath(
-            `${this.getFullCachePath()}/${cachedFileName}`
+            `${this.getFullBucketCachePath()}/${cachedFileName}`
         );
 
         const writeStream = fs.createWriteStream(objectPath);
@@ -234,8 +269,9 @@ export default class FileCache {
             s3FileLink.versionId
         );
         // important to use a relative path here
+        const bucketCachePath = this.getRelativeBucketCachePath();
         const normalizedPath = normalizePath(
-            `${Config.S3_FILE_LINK_CACHE_FOLDER}/${cachedFileName}`
+            `${bucketCachePath}/${cachedFileName}`
         );
 
         return this.getVaultResourcePath(s3FileLink, normalizedPath);
@@ -312,8 +348,9 @@ export default class FileCache {
         versionId: string
     ): Promise<boolean> {
         const cachedFileName = this.getCachedFileName(objectKey, versionId);
+        const bucketCachePath = this.getRelativeBucketCachePath();
         const normalizedPath = normalizePath(
-            `${Config.S3_FILE_LINK_CACHE_FOLDER}/${cachedFileName}`
+            `${bucketCachePath}/${cachedFileName}`
         );
 
         return this.pathExists(normalizedPath);

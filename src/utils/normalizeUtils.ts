@@ -43,3 +43,17 @@ export function normalizeObjectKey(objectKey: string): string {
         .replace(/\s+/g, "_") // Replace spaces with underscores
         .replace(/[-.]/g, "_"); // Replace dots and hyphens with underscores
 }
+
+/**
+ * Normalizes S3 bucket name for use as a folder name.
+ * - Replaces periods with underscores for cross-platform compatibility
+ * - S3 bucket names are already lowercase with limited characters
+ *
+ * @param bucketName The S3 bucket name
+ * @returns Normalized folder name safe for all file systems
+ */
+export function normalizeBucketNameForFolder(bucketName: string): string {
+    // S3 bucket names only contain lowercase, numbers, hyphens, and periods
+    // Replace periods and hyphens with underscores for consistency and safety
+    return bucketName.replace(/[.-]/g, "_");
+}

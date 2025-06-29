@@ -2,6 +2,7 @@ import {
     normalizeVersionId,
     normalizeVaultName,
     normalizeObjectKey,
+    normalizeBucketNameForFolder,
 } from "../../../src/utils/normalizeUtils";
 
 describe("normalizeVersionId", () => {
@@ -61,5 +62,23 @@ describe("normalizeObjectKey", () => {
 
     test("trims leading and trailing spaces", () => {
         expect(normalizeObjectKey("  Key Name  ")).toBe("key_name");
+    });
+});
+
+describe("normalizeBucketNameForFolder", () => {
+    test("replaces periods with underscores", () => {
+        expect(normalizeBucketNameForFolder("my.bucket.name")).toBe("my_bucket_name");
+    });
+
+    test("replaces hyphens with underscores", () => {
+        expect(normalizeBucketNameForFolder("my-bucket-name")).toBe("my_bucket_name");
+    });
+
+    test("handles bucket names without special characters", () => {
+        expect(normalizeBucketNameForFolder("mybucket123")).toBe("mybucket123");
+    });
+
+    test("handles mixed periods and hyphens", () => {
+        expect(normalizeBucketNameForFolder("my.bucket-name.test")).toBe("my_bucket_name_test");
     });
 });

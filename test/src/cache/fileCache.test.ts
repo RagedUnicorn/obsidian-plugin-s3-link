@@ -2,6 +2,8 @@ import FileCache from "../../../src/cache/fileCache";
 import Config from "../../../src/config/config";
 import { WriteStream } from "fs";
 import { App, Vault, DataAdapter } from "obsidian";
+import PluginStateManager from "../../../src/core/pluginStateManager";
+import { PluginSettings } from "../../../src/settings/pluginSettings";
 
 function createMockAdapter(): DataAdapter {
     return {
@@ -39,13 +41,29 @@ function createMockVault(adapter: DataAdapter): Partial<Vault> {
 describe("FileCache", () => {
     let fileCache: FileCache;
     let mockApp: Partial<App>;
+    let mockPluginStateManager: PluginStateManager;
 
     beforeEach(() => {
         const mockAdapter = createMockAdapter(); // Create adapter mock
         const mockVault = createMockVault(mockAdapter); // Create vault mock
 
         mockApp = { vault: mockVault } as Partial<App>; // Mock App
-        fileCache = new FileCache(mockApp as App);
+
+        // Mock PluginStateManager
+        mockPluginStateManager = {
+            getSettings: jest.fn(
+                () =>
+                    ({
+                        bucketName: "test-bucket.name",
+                        region: "us-east-1",
+                        accessKeyId: "",
+                        secretAccessKey: "",
+                        profile: "None",
+                    } as PluginSettings)
+            ),
+        } as unknown as PluginStateManager;
+
+        fileCache = new FileCache(mockApp as App, mockPluginStateManager);
     });
 
     afterEach(() => {
@@ -53,20 +71,22 @@ describe("FileCache", () => {
     });
 
     describe("init", () => {
-        it("should not create folder if cache exists", async () => {
+        it("should create bucket folder when cache folder exists", async () => {
             if (!mockApp.vault || !mockApp.vault.adapter) {
                 throw new Error("Vault or adapter is undefined");
             }
 
-            jest.spyOn(mockApp.vault.adapter, "exists").mockResolvedValue(true); // Mock adapter method
-            console.info = jest.fn(); // Mock console
+            // First call returns true (cache folder exists), second returns false (bucket folder doesn't exist)
+            jest.spyOn(mockApp.vault.adapter, "exists")
+                .mockResolvedValueOnce(true)
+                .mockResolvedValueOnce(false);
+            console.info = jest.fn();
 
             await fileCache.init();
 
-            expect(console.info).toHaveBeenCalledWith(
-                "FileCache::init - Cache folder already exists"
+            expect(mockApp.vault.createFolder).toHaveBeenCalledWith(
+                "s3_link_cache/test_bucket_name"
             );
-            expect(mockApp.vault.createFolder).not.toHaveBeenCalled();
         });
 
         it("should create folder if cache does not exist", async () => {

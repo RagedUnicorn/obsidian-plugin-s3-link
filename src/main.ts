@@ -125,7 +125,7 @@ export default class S3LinkPlugin extends Plugin {
             `${this.moduleName}::setupFileCache - Setting up file cache`
         );
 
-        this.fileCache = new FileCache(this.app);
+        this.fileCache = new FileCache(this.app, this.pluginStateManager);
         await this.fileCache.init();
 
         console.info(
