@@ -12,9 +12,11 @@ import { normalizeVaultName } from "./utils/normalizeUtils";
 import FileCache from "./cache/fileCache";
 import LocalStorageSignedLinkCache from "./cache/localStorageSignedLinkCache";
 import LocalStorageFileLinkCache from "./cache/localStorageFileLinkCache";
+import CacheManager from "./cache/cacheManager";
 import DownloadManager from "./network/downloadManager";
 import LinkProcessor from "./core/linkProcessor";
 import ResetCacheLocalCommand from "./commands/clearCacheLocalCommand";
+import NotificationManager from "./ui/notificationManager";
 
 /**
  * Entrypoint class for the S3LinkPlugin.
@@ -30,6 +32,7 @@ export default class S3LinkPlugin extends Plugin {
     normalizedVaultName!: string;
     localStorageSignedLinkCache!: LocalStorageSignedLinkCache;
     localStorageFileLinkCache!: LocalStorageFileLinkCache;
+    cacheManager!: CacheManager;
     downloadManager!: DownloadManager;
     linkProcessor!: LinkProcessor;
 
@@ -46,11 +49,13 @@ export default class S3LinkPlugin extends Plugin {
                 this.app.vault.getName()
             );
             this.setupLocalStorageCache();
+            this.setupCacheManager();
             await this.setupAwsS3Client();
             this.setupDownloadManager();
             this.setupLinkProcessor();
             this.registerEditorTools();
             this.registerPluginCommands();
+            this.registerNotificationManager();
         } catch (error) {
             console.error(
                 `${this.moduleName}::onload - Error during initialization`,
@@ -154,6 +159,25 @@ export default class S3LinkPlugin extends Plugin {
     }
 
     /**
+     * Setup the cache manager for the plugin.
+     */
+    private setupCacheManager() {
+        console.info(
+            `${this.moduleName}::setupCacheManager - Setting up cache manager`
+        );
+
+        this.cacheManager = new CacheManager(
+            this.app,
+            this.localStorageSignedLinkCache,
+            this.localStorageFileLinkCache
+        );
+
+        console.info(
+            `${this.moduleName}::setupCacheManager - Cache manager setup complete`
+        );
+    }
+
+    /**
      * Register the editor tools for the plugin. This includes the CodeMirror extension and the MarkdownPostProcessor.
      */
     private registerEditorTools() {
@@ -219,6 +243,13 @@ export default class S3LinkPlugin extends Plugin {
 
         console.info(
             `${this.moduleName}::registerPluginCommands - Plugin commands registered`
+        );
+    }
+
+    private registerNotificationManager() {
+        new NotificationManager();
+        console.info(
+            `${this.moduleName}::registerNotificationManager - Notification manager registered`
         );
     }
 }

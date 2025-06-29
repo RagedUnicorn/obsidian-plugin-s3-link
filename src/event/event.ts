@@ -8,6 +8,7 @@ import { Readable } from "stream";
 export const EVENT_FILE_LINK_PROCESSED = "fileLinkProcessed";
 export const EVENT_SIGN_LINK_PROCESSED = "signLinkProcessed";
 export const EVENT_DOWNLOAD_FINISHED = "downloadFinished";
+export const EVENT_UI_MESSAGE = "uiMessage";
 
 type Events = {
     [EVENT_SIGN_LINK_PROCESSED]: {
@@ -21,6 +22,10 @@ type Events = {
     [EVENT_DOWNLOAD_FINISHED]: {
         record: DownloadRecord;
         stream: Readable;
+    };
+    [EVENT_UI_MESSAGE]: {
+        message: string;
+        duration?: number;
     };
 };
 

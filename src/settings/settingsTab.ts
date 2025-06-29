@@ -1,4 +1,9 @@
-import { App, PluginSettingTab, Setting, TextComponent } from "obsidian";
+import {
+    App,
+    PluginSettingTab,
+    Setting,
+    TextComponent,
+} from "obsidian";
 
 import S3LinkPlugin from "../main";
 import { DEFAULT_SETTINGS } from "./defaultSettings";
@@ -157,6 +162,28 @@ export default class PluginSettingsTab extends PluginSettingTab {
             );
 
         this.shouldEnableLocalCredentials();
+
+        // Cache Management Section
+        new Setting(containerEl)
+            .setName("Cache Management")
+            .setDesc("Manage the plugin's cache and stored data")
+            .setHeading();
+
+        const clearCacheSetting = new Setting(containerEl)
+            .setName("Clear All Caches")
+            .setDesc(
+                "Delete all cached files and localStorage entries. This action is safe - files can be re-downloaded when needed."
+            )
+            .addButton((button) =>
+                button
+                    .setButtonText("Clear All Caches")
+                    .setCta()
+                    .onClick(async () => {
+                        await this.plugin.cacheManager.clearAllCaches();
+                    })
+            );
+
+        clearCacheSetting.settingEl.addClass("mod-warning");
     }
 
     private shouldEnableLocalCredentials() {
