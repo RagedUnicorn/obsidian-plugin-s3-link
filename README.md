@@ -2,6 +2,11 @@
 
 ![](docs/plugin_banner.png)
 
+[![Lint](https://github.com/RagedUnicorn/obsidian-plugin-s3-link/actions/workflows/lint.yaml/badge.svg?branch=master)](https://github.com/RagedUnicorn/obsidian-plugin-s3-link/actions/workflows/lint.yaml)
+[![Test](https://github.com/RagedUnicorn/obsidian-plugin-s3-link/actions/workflows/test.yaml/badge.svg?branch=master)](https://github.com/RagedUnicorn/obsidian-plugin-s3-link/actions/workflows/test.yaml)
+[![Type Check](https://github.com/RagedUnicorn/obsidian-plugin-s3-link/actions/workflows/typecheck.yaml/badge.svg?branch=master)](https://github.com/RagedUnicorn/obsidian-plugin-s3-link/actions/workflows/typecheck.yaml)
+[![License: MIT](docs/license_mit.svg)](LICENSE)
+
 > A plugin that retrieves, references and caches objects from AWS S3 Buckets
 
 ## Overview
