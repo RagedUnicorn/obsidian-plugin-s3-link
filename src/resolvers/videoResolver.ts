@@ -1,9 +1,9 @@
 import Config from "../config/config";
-import Resolver from "./resolver";
+import Resolver, { TargetElement, ResolvedElements } from "./resolver";
 
 export default class VideoResolver extends Resolver {
-    private readonly moduleName = "VideoResolver";
-    targetElement = "video";
+    protected override readonly moduleName = "VideoResolver";
+    protected override readonly targetElement: TargetElement = "video";
 
     constructor() {
         super();
@@ -16,10 +16,7 @@ export default class VideoResolver extends Resolver {
      *
      * @returns two separate maps for objectKeys and signObjectKeys
      */
-    public resolveHtmlElement(element: HTMLElement): {
-        objectKeys: Map<string, HTMLElement[]>;
-        signObjectKeys: Map<string, HTMLElement[]>;
-    } {
+    public resolveHtmlElement(element: HTMLElement): ResolvedElements {
         console.debug(
             `${this.moduleName}::resolveHtmlElement - Processing rendered html content`
         );
@@ -42,19 +39,9 @@ export default class VideoResolver extends Resolver {
             const objectKey = parts[this.s3LinkRightPart];
 
             if (linkPrefix === Config.S3_FILE_LINK_PREFIX) {
-                this.processValidObjectKey(
-                    this.moduleName,
-                    objectKey,
-                    videoElement,
-                    false
-                );
+                this.processValidObjectKey(objectKey, videoElement, false);
             } else if (linkPrefix === Config.S3_SIGNED_LINK_PREFIX) {
-                this.processValidObjectKey(
-                    this.moduleName,
-                    objectKey,
-                    videoElement,
-                    true
-                );
+                this.processValidObjectKey(objectKey, videoElement, true);
             }
         });
 

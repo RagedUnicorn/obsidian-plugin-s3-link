@@ -1,9 +1,10 @@
 import Config from "../config/config";
-import Resolver from "./resolver";
+import Resolver, { TargetElement, ResolvedElements } from "./resolver";
 
 export default class DivEmbedResolver extends Resolver {
-    private readonly moduleName = "DivEmbedResolver";
-    targetElement = "div.internal-embed";
+    protected override readonly moduleName = "DivEmbedResolver";
+    protected override readonly targetElement: TargetElement =
+        "div.internal-embed";
 
     constructor() {
         super();
@@ -16,10 +17,7 @@ export default class DivEmbedResolver extends Resolver {
      *
      * @returns two separate maps for objectKeys and signObjectKeys
      */
-    public resolveHtmlElement(element: HTMLElement): {
-        objectKeys: Map<string, HTMLElement[]>;
-        signObjectKeys: Map<string, HTMLElement[]>;
-    } {
+    public resolveHtmlElement(element: HTMLElement): ResolvedElements {
         console.debug(
             `${this.moduleName}::resolveHtmlElement - Processing rendered html content`
         );
@@ -46,14 +44,12 @@ export default class DivEmbedResolver extends Resolver {
 
                 if (linkPrefix === Config.S3_FILE_LINK_PREFIX) {
                     this.processValidObjectKey(
-                        this.moduleName,
                         objectKey,
                         divEmbedElement,
                         false
                     );
                 } else if (linkPrefix === Config.S3_SIGNED_LINK_PREFIX) {
                     this.processValidObjectKey(
-                        this.moduleName,
                         objectKey,
                         divEmbedElement,
                         true

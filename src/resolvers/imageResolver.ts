@@ -1,9 +1,9 @@
 import Config from "../config/config";
-import Resolver from "./resolver";
+import Resolver, { TargetElement, ResolvedElements } from "./resolver";
 
 export default class ImageResolver extends Resolver {
-    private readonly moduleName = "ImageResolver";
-    targetElement = "img";
+    protected override readonly moduleName = "ImageResolver";
+    protected override readonly targetElement: TargetElement = "img";
 
     constructor() {
         super();
@@ -16,10 +16,7 @@ export default class ImageResolver extends Resolver {
      *
      * @returns two separate maps for objectKeys and signObjectKeys
      */
-    public resolveHtmlElement(element: HTMLElement): {
-        objectKeys: Map<string, HTMLElement[]>;
-        signObjectKeys: Map<string, HTMLElement[]>;
-    } {
+    public resolveHtmlElement(element: HTMLElement): ResolvedElements {
         console.debug(
             `${this.moduleName}::resolveHtmlElement - Processing rendered html content`
         );
@@ -42,19 +39,9 @@ export default class ImageResolver extends Resolver {
             const objectKey = parts[this.s3LinkRightPart];
 
             if (linkPrefix === Config.S3_FILE_LINK_PREFIX) {
-                this.processValidObjectKey(
-                    this.moduleName,
-                    objectKey,
-                    imageElement,
-                    false
-                );
+                this.processValidObjectKey(objectKey, imageElement, false);
             } else if (linkPrefix === Config.S3_SIGNED_LINK_PREFIX) {
-                this.processValidObjectKey(
-                    this.moduleName,
-                    objectKey,
-                    imageElement,
-                    true
-                );
+                this.processValidObjectKey(objectKey, imageElement, true);
             }
         });
 

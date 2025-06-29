@@ -1,9 +1,10 @@
 import Config from "../config/config";
-import Resolver from "./resolver";
+import Resolver, { TargetElement, ResolvedElements } from "./resolver";
 
 export default class SpanEmbedResolver extends Resolver {
-    private readonly moduleName = "SpanEmbedResolver";
-    targetElement = "span.internal-embed";
+    protected override readonly moduleName = "SpanEmbedResolver";
+    protected override readonly targetElement: TargetElement =
+        "span.internal-embed";
 
     constructor() {
         super();
@@ -16,10 +17,7 @@ export default class SpanEmbedResolver extends Resolver {
      *
      * @returns two separate maps for objectKeys and signObjectKeys
      */
-    public resolveHtmlElement(element: HTMLElement): {
-        objectKeys: Map<string, HTMLElement[]>;
-        signObjectKeys: Map<string, HTMLElement[]>;
-    } {
+    public resolveHtmlElement(element: HTMLElement): ResolvedElements {
         console.debug(
             `${this.moduleName}::resolveHtmlElement - Processing rendered html content`
         );
@@ -46,14 +44,12 @@ export default class SpanEmbedResolver extends Resolver {
 
                 if (linkPrefix === Config.S3_FILE_LINK_PREFIX) {
                     this.processValidObjectKey(
-                        this.moduleName,
                         objectKey,
                         spanEmbedElement,
                         false
                     );
                 } else if (linkPrefix === Config.S3_SIGNED_LINK_PREFIX) {
                     this.processValidObjectKey(
-                        this.moduleName,
                         objectKey,
                         spanEmbedElement,
                         true

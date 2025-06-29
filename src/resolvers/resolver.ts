@@ -10,12 +10,10 @@ export default abstract class Resolver {
 
     protected readonly s3LinkLeftPart = 0;
     protected readonly s3LinkRightPart = 1;
-    protected abstract targetElement: string;
+    protected abstract readonly moduleName: string;
+    protected abstract readonly targetElement: TargetElement;
 
-    public abstract resolveHtmlElement(element: HTMLElement): {
-        objectKeys: Map<string, HTMLElement[]>;
-        signObjectKeys: Map<string, HTMLElement[]>;
-    };
+    public abstract resolveHtmlElement(element: HTMLElement): ResolvedElements;
 
     protected addFileObjectKey(objectKey: string, htmlElement: HTMLElement) {
         if (this.objectKeys.has(objectKey)) {
@@ -50,11 +48,12 @@ export default abstract class Resolver {
      * @param isSigned Whether the key is a signed key
      */
     protected processValidObjectKey(
-        moduleName: string,
         objectKey: string,
         htmlElement: HTMLElement,
         isSigned: boolean
     ): void {
+        const className = this.moduleName;
+
         if (this.isValidObjectKey(objectKey)) {
             if (isSigned) {
                 this.addSignObjectKey(objectKey, htmlElement);
@@ -62,14 +61,14 @@ export default abstract class Resolver {
                 this.addFileObjectKey(objectKey, htmlElement);
             }
             console.debug(
-                `${moduleName}::processValidObjectKey - Valid ${
+                `${className}::processValidObjectKey - Valid ${
                     isSigned ? "signed" : "regular"
                 } objectKey found:`,
                 objectKey
             );
         } else {
             console.warn(
-                `${moduleName}::processValidObjectKey - Invalid objectKey(ignoring):`,
+                `${className}::processValidObjectKey - Invalid objectKey(ignoring):`,
                 objectKey
             );
         }
@@ -85,3 +84,20 @@ export default abstract class Resolver {
         return objectKey.length > 0 && !objectKey.endsWith("/");
     }
 }
+
+export type TargetElement =
+    | "img"
+    | "audio"
+    | "video"
+    | "div.internal-embed"
+    | "span.internal-embed";
+
+/**
+ * Represents resolved HTML elements grouped by S3 object key.
+ */
+export type ResolvedElements = {
+    /** Items to be directly downloaded from S3 */
+    objectKeys: Map<string, HTMLElement[]>;
+    /** Items needing signed URLs */
+    signObjectKeys: Map<string, HTMLElement[]>;
+};

@@ -1,9 +1,9 @@
 import Config from "../config/config";
-import Resolver from "./resolver";
+import Resolver, { TargetElement, ResolvedElements } from "./resolver";
 
 export default class AudioResolver extends Resolver {
-    private readonly moduleName = "AudioResolver";
-    targetElement = "audio";
+    protected override readonly moduleName = "AudioResolver";
+    protected override readonly targetElement: TargetElement = "audio";
 
     constructor() {
         super();
@@ -16,10 +16,7 @@ export default class AudioResolver extends Resolver {
      *
      * @returns two separate maps for objectKeys and signObjectKeys
      */
-    public resolveHtmlElement(element: HTMLElement): {
-        objectKeys: Map<string, HTMLElement[]>;
-        signObjectKeys: Map<string, HTMLElement[]>;
-    } {
+    public resolveHtmlElement(element: HTMLElement): ResolvedElements {
         console.debug(
             `${this.moduleName}::resolveHtmlElement - Processing rendered html content`
         );
@@ -42,19 +39,9 @@ export default class AudioResolver extends Resolver {
             const objectKey = parts[this.s3LinkRightPart];
 
             if (linkPrefix === Config.S3_FILE_LINK_PREFIX) {
-                this.processValidObjectKey(
-                    this.moduleName,
-                    objectKey,
-                    audioElement,
-                    false
-                );
+                this.processValidObjectKey(objectKey, audioElement, false);
             } else if (linkPrefix === Config.S3_SIGNED_LINK_PREFIX) {
-                this.processValidObjectKey(
-                    this.moduleName,
-                    objectKey,
-                    audioElement,
-                    true
-                );
+                this.processValidObjectKey(objectKey, audioElement, true);
             }
         });
 

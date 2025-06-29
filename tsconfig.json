@@ -1,13 +1,18 @@
 {
     "compilerOptions": {
-        "target": "es2018",
-        "module": "commonjs",
+        "target": "es2020",
+        "module": "esnext",
+        "moduleResolution": "node",
+        "lib": ["es2020", "dom"],
         "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true,
         "strict": true,
         "strictNullChecks": true,
         "forceConsistentCasingInFileNames": true,
-        "skipLibCheck": true
+        "skipLibCheck": true,
+        "noUnusedLocals": false, // TODO
+        "noUnusedParameters": false // TODO
     },
-    "include": ["src/**/*.ts"], // Ensure only your source code is compiled
-    "exclude": ["node_modules", "dist"] // Ignore unnecessary files
+    "include": ["src/**/*.ts"],
+    "exclude": ["node_modules", "dist"]
 }

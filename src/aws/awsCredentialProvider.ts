@@ -51,7 +51,7 @@ export default class AwsCredentialProvider {
             );
         }
 
-        return [];
+        return this.profiles;
     }
 
     /**
@@ -156,19 +156,27 @@ export default class AwsCredentialProvider {
      *
      * @returns Parsed ini file content
      */
-    private parseIni(input: string): {
-        [key: string]: string | { [key: string]: string };
-    } {
-        const result: { [key: string]: string | { [key: string]: string } } =
-            {};
-        let section = result;
+    private parseIni(input: string): Record<string, Record<string, string>> {
+        const result: Record<string, Record<string, string>> = {};
+        let currentSection: Record<string, string> | null = null;
 
         input.split("\n").forEach((line) => {
-            let match;
-            if ((match = line.match(/^\s*\[\s*([^\]]*)\s*\]\s*$/))) {
-                section = result[match[1]] = {};
-            } else if ((match = line.match(/^\s*([^=]+?)\s*=\s*(.*?)\s*$/))) {
-                section[match[1]] = match[2];
+            line = line.trim();
+            if (!line || line.startsWith(";") || line.startsWith("#")) {
+                return; // skip empty lines and comments
+            }
+
+            let match: RegExpMatchArray | null;
+            if ((match = line.match(/^\[([^\]]+)\]$/))) {
+                const sectionName = match[1].trim();
+                currentSection = result[sectionName] = {};
+            } else if ((match = line.match(/^([^=]+)=(.*)$/))) {
+                if (!currentSection) {
+                    currentSection = result[""] = {};
+                }
+                const key = match[1].trim();
+                const value = match[2].trim();
+                currentSection[key] = value;
             }
         });
 

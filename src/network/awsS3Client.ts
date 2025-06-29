@@ -256,7 +256,9 @@ export default class AwsS3Client {
      *
      * @returns A Node.js Readable stream.
      */
-    private browserStreamToReadable(browserStream: ReadableStream): Readable {
+    private browserStreamToReadable(
+        browserStream: ReadableStream<Uint8Array>
+    ): Readable {
         const reader = browserStream.getReader();
         return new Readable({
             async read() {

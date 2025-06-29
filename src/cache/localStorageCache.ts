@@ -61,28 +61,28 @@ export default abstract class LocalStorageCache {
             `${this.moduleName}::clearLocalStorage - Clearing localStorage`
         );
 
-        let baseKey: string;
-
-        if (cachePath) {
-            baseKey = `${Config.PLUGIN_NAME}/${this.vaultName}/${cachePath}`;
-        } else {
-            baseKey = `${Config.PLUGIN_NAME}/${this.vaultName}`;
-        }
+        const baseKey = cachePath
+            ? `${Config.PLUGIN_NAME}/${this.vaultName}/${cachePath}`
+            : `${Config.PLUGIN_NAME}/${this.vaultName}`;
 
         console.info(
             `${this.moduleName}::clearLocalStorage - Clearing cache for baseKey: ${baseKey}`
         );
 
-        const localStorageItems = Object.keys(window.localStorage.storage);
+        const keysToRemove: string[] = [];
 
-        localStorageItems.forEach((key) => {
-            if (key.startsWith(baseKey)) {
-                localStorage.removeItem(key);
-
-                console.debug(
-                    `${this.moduleName}: Removed item with key: ${key} from localStorage`
-                );
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith(baseKey)) {
+                keysToRemove.push(key);
             }
+        }
+
+        keysToRemove.forEach((key) => {
+            localStorage.removeItem(key);
+            console.debug(
+                `${this.moduleName}: Removed item with key: ${key} from localStorage`
+            );
         });
     }
 
