@@ -26,7 +26,7 @@ describe("AwsCredentialProvider", () => {
 
         mockOs.homedir.mockReturnValue("\\fake\\home");
 
-        jest.spyOn(fs.promises, "access").mockResolvedValue(undefined as any);
+        jest.spyOn(fs.promises, "access").mockResolvedValue(undefined);
         jest.spyOn(fs.promises, "readFile").mockResolvedValue(sampleIni);
     });
 
