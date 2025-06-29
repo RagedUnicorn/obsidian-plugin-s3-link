@@ -54,6 +54,9 @@ tags:
 
 > [!Fail] Expected to Fail
 
+> [!Warning] 
+> This is caused by a double encoding of the value and will show up in the Javascript console and the network log as "UnkownError". The file cannot be found in the S3 Bucket.
+
 ![](s3:images/s3_image_obsidian_image_embed_test_jpg_special_characters_!@#$%^&()-_+={}[]~'.jpg)
 
 #### Obsidian Image Embed Underscore
