@@ -5,7 +5,7 @@
     "main": "main.js",
     "scripts": {
         "dev": "node esbuild.config.mjs dev watch",
-        "build": "tsc --noEmit --skipLibCheck && node esbuild.config.mjs prod watch",
+        "build": "tsc --noEmit --skipLibCheck && node esbuild.config.mjs prod",
         "build:ci": "tsc --noEmit --skipLibCheck && node esbuild.config.mjs prod",
         "test": "jest",
         "lint": "eslint .",
@@ -46,6 +46,7 @@
     "dependencies": {
         "@aws-sdk/client-s3": "^3.717.0",
         "@aws-sdk/s3-request-presigner": "^3.717.0",
+        "@codemirror/language": "^6.11.2",
         "@codemirror/view": "^6.36.2",
         "mitt": "^3.0.1"
     },

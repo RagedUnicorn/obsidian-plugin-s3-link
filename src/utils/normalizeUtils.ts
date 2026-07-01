@@ -32,6 +32,11 @@ export function normalizeVaultName(vaultName: string): string {
  * - Replaces spaces with underscores (_)
  * - Removes unsupported characters
  *
+ * Dots and hyphens are preserved: collapsing them into underscores would
+ * cause distinct S3 keys (e.g. "foo_01.02.2025" vs "foo_01_02_2025") to
+ * collide on the same cache entry, so renames in S3 would not invalidate
+ * the cache.
+ *
  * @param objectKey The original key
  * @returns The normalized S3 object key
  */
@@ -40,8 +45,7 @@ export function normalizeObjectKey(objectKey: string): string {
         .toLowerCase() // Convert to lowercase
         .replace(/[^a-z0-9\-._ ]/g, "") // Allow safe characters
         .trim() // Trim leading/trailing spaces
-        .replace(/\s+/g, "_") // Replace spaces with underscores
-        .replace(/[-.]/g, "_"); // Replace dots and hyphens with underscores
+        .replace(/\s+/g, "_"); // Replace spaces with underscores
 }
 
 /**

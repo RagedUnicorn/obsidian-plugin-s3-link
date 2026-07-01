@@ -2,14 +2,23 @@
     "name": "Obsidian Plugin S3 Link",
     "context": "..",
     "dockerFile": "Dockerfile",
+    "features": {
+        "ghcr.io/anthropics/devcontainer-features/claude-code:1.0": {}
+    },
     "customizations": {
         "vscode": {
             "extensions": ["dbaeumer.vscode-eslint", "esbenp.prettier-vscode"],
             "settings": {
                 "terminal.integrated.shell.linux": "/bin/bash"
             }
+        },
+        "jetbrains": {
+            "plugins": ["com.anthropic.code.jetbrains-plugin"]
         }
     },
-    "postCreateCommand": "npm install",
+    "mounts": [
+        "source=claude-code-config-${devcontainerId},target=/home/node/.claude,type=volume"
+    ],
+    "postCreateCommand": "sudo chown -R node:node /home/node/.claude && npm install",
     "remoteUser": "node"
 }

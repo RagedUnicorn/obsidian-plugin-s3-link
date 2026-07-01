@@ -6,6 +6,7 @@ import ImageResolver from "../resolvers/imageResolver";
 import VideoResolver from "../resolvers/videoResolver";
 import AudioResolver from "../resolvers/audioResolver";
 import SpanEmbedResolver from "../resolvers/spanEmbedResolver";
+import AnchorPreloadResolver from "../resolvers/anchorPreloadResolver";
 
 export default class MarkdownPostProcessor {
     private readonly moduleName = "S3PostProcessor";
@@ -15,6 +16,7 @@ export default class MarkdownPostProcessor {
     private videoResolver: VideoResolver;
     private audioResolver: AudioResolver;
     private spanEmbedResolver: SpanEmbedResolver;
+    private anchorPreloadResolver: AnchorPreloadResolver;
 
     constructor(private plugin: S3LinkPlugin) {
         this.app = plugin.app;
@@ -23,6 +25,7 @@ export default class MarkdownPostProcessor {
         this.videoResolver = new VideoResolver();
         this.audioResolver = new AudioResolver();
         this.spanEmbedResolver = new SpanEmbedResolver();
+        this.anchorPreloadResolver = new AnchorPreloadResolver();
 
         console.info(
             `${this.moduleName}::constructor - MarkdownPostProcessor created`
@@ -44,6 +47,7 @@ export default class MarkdownPostProcessor {
         this.processVideoLinks(element);
         this.processAudioLinks(element);
         this.processSpanEmbedLinks(element);
+        this.processAnchorPreloadLinks(element);
     }
 
     /**
@@ -108,5 +112,24 @@ export default class MarkdownPostProcessor {
         );
 
         this.linkProcessor.processLinks(resolvedS3SpanEmbedLinks);
+    }
+
+    /**
+     * Process anchor links for preloading.
+     * This triggers downloads for s3: links but doesn't modify the HTML.
+     *
+     * @param element
+     */
+    private async processAnchorPreloadLinks(element: HTMLElement) {
+        const resolvedS3AnchorLinks =
+            this.anchorPreloadResolver.resolveHtmlElement(element);
+
+        // Only process if there are files to preload
+        if (resolvedS3AnchorLinks.objectKeys.size > 0) {
+            console.debug(
+                `${this.moduleName}::processAnchorPreloadLinks - Preloading ${resolvedS3AnchorLinks.objectKeys.size} S3 files from anchor links`
+            );
+            this.linkProcessor.processLinks(resolvedS3AnchorLinks);
+        }
     }
 }

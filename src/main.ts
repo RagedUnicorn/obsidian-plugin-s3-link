@@ -1,4 +1,4 @@
-import { Plugin } from "obsidian";
+import { Plugin, TFile } from "obsidian";
 
 import PluginSettingsTab from "./settings/settingsTab";
 import PluginStateManager from "./core/pluginStateManager";
@@ -17,6 +17,9 @@ import DownloadManager from "./network/downloadManager";
 import LinkProcessor from "./core/linkProcessor";
 import ResetCacheLocalCommand from "./commands/clearCacheLocalCommand";
 import NotificationManager from "./ui/notificationManager";
+import LinkClickHandler from "./core/linkClickHandler";
+import { emitter, EVENT_DOWNLOAD_FINISHED } from "./event/event";
+import { createS3FileLink } from "./core/s3FileLink";
 
 /**
  * Entrypoint class for the S3LinkPlugin.
@@ -35,6 +38,7 @@ export default class S3LinkPlugin extends Plugin {
     cacheManager!: CacheManager;
     downloadManager!: DownloadManager;
     linkProcessor!: LinkProcessor;
+    linkClickHandler!: LinkClickHandler;
 
     /**
      * Entrypoint for plugin initialization.
@@ -56,6 +60,7 @@ export default class S3LinkPlugin extends Plugin {
             this.registerEditorTools();
             this.registerPluginCommands();
             this.registerNotificationManager();
+            this.registerLinkClickHandler();
         } catch (error) {
             console.error(
                 `${this.moduleName}::onload - Error during initialization`,
@@ -73,6 +78,7 @@ export default class S3LinkPlugin extends Plugin {
 
         this.fileCache?.closeAllOpenStreams();
         this.awsS3Client?.unload();
+        this.linkClickHandler?.unregister();
     }
 
     /**
@@ -222,9 +228,8 @@ export default class S3LinkPlugin extends Plugin {
         );
 
         this.codeMirrorExtension = new CodeMirrorExtension(this);
-        this.registerEditorExtension(
-            this.codeMirrorExtension.createCodeMirrorExtension()
-        );
+        const extensions = this.codeMirrorExtension.createCodeMirrorExtensions();
+        extensions.forEach(ext => this.registerEditorExtension(ext));
 
         console.info(
             `${this.moduleName}::registerPluginCodeMirrorExtension - CodeMirrorExtension registered`
@@ -252,4 +257,192 @@ export default class S3LinkPlugin extends Plugin {
             `${this.moduleName}::registerNotificationManager - Notification manager registered`
         );
     }
+
+    /**
+     * Register the link click handler for S3 protocol links.
+     */
+    private registerLinkClickHandler() {
+        console.info(
+            `${this.moduleName}::registerLinkClickHandler - Registering link click handler`
+        );
+
+        this.linkClickHandler = new LinkClickHandler(
+            this,
+            async (objectKey: string, isSigned: boolean) => {
+                // Handle S3 link click
+                console.debug(
+                    `${this.moduleName}::registerLinkClickHandler - Processing S3 link:`,
+                    { objectKey, isSigned }
+                );
+
+                if (isSigned) {
+                    // For signed links, get the signed URL and open in browser
+                    console.info(
+                        `${this.moduleName}::registerLinkClickHandler - Opening signed link in browser:`,
+                        objectKey
+                    );
+                    try {
+                        const signedUrl =
+                            await this.awsS3Client.getSignedUrlForObject(
+                                objectKey
+                            );
+                        if (signedUrl) {
+                            window.open(signedUrl, "_blank");
+                        }
+                    } catch (error) {
+                        console.error(
+                            `${this.moduleName}::registerLinkClickHandler - Error getting signed URL:`,
+                            error
+                        );
+                    }
+                } else {
+                    // For file links, download and open in Obsidian
+                    try {
+                        // Check if file exists in cache
+                        const cachedFileLink =
+                            this.localStorageFileLinkCache.findCachedFileLink(
+                                objectKey
+                            );
+                        if (
+                            cachedFileLink &&
+                            (await this.fileCache.fileExistsInCacheFolder(
+                                cachedFileLink.objectKey,
+                                cachedFileLink.versionId
+                            ))
+                        ) {
+                            const filePath =
+                                await this.fileCache.getFileFromCacheFolder(
+                                    cachedFileLink
+                                );
+                            // Open the file in Obsidian
+                            await this.openFileInObsidian(filePath);
+                        } else {
+                            // File not in cache, need to download first
+                            const versionId =
+                                await this.awsS3Client.getLatestObjectVersion(
+                                    objectKey
+                                );
+                            if (versionId) {
+                                // Add to download queue and open after download
+                                this.downloadManager.addNewDownLoad(
+                                    objectKey,
+                                    versionId,
+                                    []
+                                );
+
+                                // Listen for download completion
+                                const downloadListener = async (event: { record: { objectKey: string; versionId: string } }) => {
+                                    if (event.record.objectKey === objectKey) {
+                                        const fileLink = createS3FileLink(
+                                            event.record.objectKey,
+                                            event.record.versionId
+                                        );
+                                        const filePath =
+                                            await this.fileCache.getFileFromCacheFolder(
+                                                fileLink
+                                            );
+                                        await this.openFileInObsidian(
+                                            filePath
+                                        );
+                                        // Remove listener after handling
+                                        emitter.off(
+                                            EVENT_DOWNLOAD_FINISHED,
+                                            downloadListener
+                                        );
+                                    }
+                                };
+                                emitter.on(
+                                    EVENT_DOWNLOAD_FINISHED,
+                                    downloadListener
+                                );
+                            }
+                        }
+                    } catch (error) {
+                        console.error(
+                            `${this.moduleName}::registerLinkClickHandler - Error processing file link:`,
+                            error
+                        );
+                    }
+                }
+            }
+        );
+
+        this.linkClickHandler.register();
+
+        console.info(
+            `${this.moduleName}::registerLinkClickHandler - Link click handler registered`
+        );
+    }
+
+    /**
+     * Open a file in Obsidian.
+     * Opens the cached file as a regular Obsidian file in a new tab/pane.
+     */
+    private async openFileInObsidian(filePath: string) {
+        try {
+            // Extract the actual file path from app:// URL if present
+            let actualPath = filePath;
+            if (filePath.startsWith('app://')) {
+                // Parse the URL to extract the actual file path
+                // Format: app://[id]/[actual_path]?[timestamp]
+                const urlParts = filePath.split('/');
+                // Skip 'app:' and the ID parts, rejoin the rest
+                actualPath = urlParts.slice(3).join('/');
+                // Remove any query parameters
+                const queryIndex = actualPath.indexOf('?');
+                if (queryIndex > -1) {
+                    actualPath = actualPath.substring(0, queryIndex);
+                }
+                // On Windows, fix the drive letter format (C:/ instead of C/)
+                if (actualPath.match(/^[A-Za-z]\//)) {
+                    actualPath = actualPath.substring(0, 1) + ':' + actualPath.substring(1);
+                }
+            }
+            
+            // Get the relative path from the vault root
+            const vaultPath = ((this.app.vault.adapter as unknown as { basePath?: string }).basePath || '').replace(/\\/g, '/');
+            
+            // Normalize the actual path to use forward slashes
+            const normalizedActualPath = actualPath.replace(/\\/g, '/');
+            
+            let relativePath = normalizedActualPath;
+            
+            // If the file path is absolute and within the vault, make it relative
+            if (normalizedActualPath.toLowerCase().startsWith(vaultPath.toLowerCase())) {
+                relativePath = normalizedActualPath.substring(vaultPath.length);
+                if (relativePath.startsWith('/')) {
+                    relativePath = relativePath.substring(1);
+                }
+            }
+
+            console.debug(
+                `${this.moduleName}::openFileInObsidian - Opening file:`,
+                { filePath, actualPath, relativePath, vaultPath }
+            );
+
+            // Check if the file exists in the vault
+            const file = this.app.vault.getAbstractFileByPath(relativePath);
+
+            if (file) {
+                // Open the file in a new leaf (tab)
+                const leaf = this.app.workspace.getLeaf("tab");
+                await leaf.openFile(file as TFile);
+            } else {
+                console.warn(
+                    `${this.moduleName}::openFileInObsidian - File not found in vault, trying direct open:`,
+                    relativePath
+                );
+                // Try to open using the path directly
+                await this.app.workspace.openLinkText(relativePath, "", true);
+            }
+        } catch (error) {
+            console.error(
+                `${this.moduleName}::openFileInObsidian - Error opening file:`,
+                error
+            );
+            // Fallback: try to open as external file
+            window.open(filePath);
+        }
+    }
+
 }

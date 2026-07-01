@@ -90,7 +90,8 @@ export type TargetElement =
     | "audio"
     | "video"
     | "div.internal-embed"
-    | "span.internal-embed";
+    | "span.internal-embed"
+    | "a";
 
 /**
  * Represents resolved HTML elements grouped by S3 object key.

@@ -6,6 +6,7 @@ import {
     PluginValue,
     EditorView,
 } from "@codemirror/view";
+import { Extension } from "@codemirror/state";
 
 import S3LinkPlugin from "../main";
 import LinkProcessor from "../core/linkProcessor";
@@ -13,6 +14,8 @@ import ImageResolver from "../resolvers/imageResolver";
 import VideoResolver from "../resolvers/videoResolver";
 import AudioResolver from "../resolvers/audioResolver";
 import DivEmbedResolver from "../resolvers/divEmbedResolver";
+import AnchorPreloadResolver from "../resolvers/anchorPreloadResolver";
+import { createLinkClickInterceptor } from "./linkClickInterceptor";
 
 export default class CodeMirrorExtension {
     private readonly moduleName = "CodeMirrorExtension";
@@ -21,6 +24,7 @@ export default class CodeMirrorExtension {
     private videoResolver: VideoResolver;
     private audioResolver: AudioResolver;
     private divEmbedResolver: DivEmbedResolver;
+    private anchorPreloadResolver: AnchorPreloadResolver;
 
     constructor(private plugin: S3LinkPlugin) {
         this.linkProcessor = plugin.linkProcessor;
@@ -28,6 +32,7 @@ export default class CodeMirrorExtension {
         this.videoResolver = new VideoResolver();
         this.audioResolver = new AudioResolver();
         this.divEmbedResolver = new DivEmbedResolver();
+        this.anchorPreloadResolver = new AnchorPreloadResolver();
 
         console.info(
             `${this.moduleName}::constructor - CodeMirrorExtension created`
@@ -35,13 +40,35 @@ export default class CodeMirrorExtension {
     }
 
     /**
-     * Build a CodeMirror extension for the plugin.
-     * This extension will be used to monitor the CodeMirror editor for changes.
+     * Build CodeMirror extensions for the plugin.
+     * These extensions will monitor the editor and intercept S3 link clicks.
      *
      * @returns
-     *  The CodeMirror extension
+     *  Array of CodeMirror extensions
      */
-    public createCodeMirrorExtension(): ViewPlugin<PluginValue> {
+    public createCodeMirrorExtensions(): Extension[] {
+        // Create the link click interceptor
+        const linkClickInterceptor = createLinkClickInterceptor(
+            (objectKey: string, isSigned: boolean) => {
+                if (this.plugin.linkClickHandler) {
+                    this.plugin.linkClickHandler.onS3LinkClick(objectKey, isSigned);
+                }
+            }
+        );
+
+        // Create the view plugin for monitoring changes
+        const viewPlugin = this.createViewPlugin();
+
+        return [linkClickInterceptor, viewPlugin];
+    }
+
+    /**
+     * Create the view plugin for monitoring editor changes.
+     *
+     * @returns
+     *  The CodeMirror view plugin
+     */
+    private createViewPlugin(): ViewPlugin<PluginValue> {
         const updateView = this.throttleUpdateView.bind(this);
         const moduleName = this.moduleName;
 
@@ -109,6 +136,7 @@ export default class CodeMirrorExtension {
         this.processVideoLinks(update.dom);
         this.processAudioLinks(update.dom);
         this.processDivEmbedLinks(update.dom);
+        this.processAnchorPreloadLinks(update);
     }
 
     /**
@@ -179,8 +207,30 @@ export default class CodeMirrorExtension {
         this.linkProcessor.processLinks(resolvedDivEmbedLinks);
     }
 
+    /**
+     * Process anchor links for preloading.
+     * This triggers downloads for s3: links but doesn't modify the HTML.
+     * In editing mode the anchor hrefs are not reliable, so the resolver
+     * scans the raw document text instead of the rendered DOM.
+     *
+     * @param view The CodeMirror editor view
+     */
+    private async processAnchorPreloadLinks(view: EditorView) {
+        const resolvedS3AnchorLinks = this.anchorPreloadResolver.resolveTextContent(
+            view.state.doc.toString()
+        );
+
+        if (resolvedS3AnchorLinks.objectKeys.size > 0) {
+            console.debug(
+                `${this.moduleName}::processAnchorPreloadLinks - Preloading ${resolvedS3AnchorLinks.objectKeys.size} S3 files from document text`
+            );
+            this.linkProcessor.processLinks(resolvedS3AnchorLinks);
+        }
+    }
+
     onunload() {
-        // Clean up when the plugin is unloaded
-        // TODO
+        // No manual cleanup required: the CodeMirror ViewPlugin disconnects its
+        // MutationObserver in its own destroy() hook, and registered editor
+        // extensions are torn down by Obsidian when the plugin unloads.
     }
 }

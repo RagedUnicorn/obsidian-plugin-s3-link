@@ -165,6 +165,8 @@ export default class HtmlProcessor {
             this.updateSpanElement(htmlElement, source, objectKey);
         } else if (htmlElement instanceof HTMLDivElement) {
             this.updateDivElement(htmlElement, source, objectKey);
+        } else if (htmlElement instanceof HTMLAnchorElement) {
+            // do not modify anchor elements, they are handled by the link click handler
         } else {
             throw new Error(
                 `Unsupported HTML element: ${

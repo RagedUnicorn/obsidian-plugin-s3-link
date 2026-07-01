@@ -52,16 +52,42 @@ describe("normalizeObjectKey", () => {
     test("removes unsupported characters", () => {
         expect(normalizeObjectKey("Key@#$%^&*()")).toBe("key");
         expect(normalizeObjectKey("Safe/Key-Object.name")).toBe(
-            "safekey_object_name"
+            "safekey-object.name"
         );
     });
 
-    test("replaces dots and hyphens with underscores", () => {
-        expect(normalizeObjectKey("key.name-version")).toBe("key_name_version");
+    test("preserves dots and hyphens", () => {
+        expect(normalizeObjectKey("key.name-version")).toBe("key.name-version");
     });
 
     test("trims leading and trailing spaces", () => {
         expect(normalizeObjectKey("  Key Name  ")).toBe("key_name");
+    });
+
+    test("produces distinct keys for inputs differing only in dots vs underscores", () => {
+        // Regression: previously dots/hyphens were collapsed to underscores,
+        // causing cache collisions when an S3 object was renamed e.g. from
+        // "this_is_a_test_01.02.2025" to "this_is_a_test_01_02_2025".
+        const dotted = normalizeObjectKey("this_is_a_test_01.02.2025");
+        const underscored = normalizeObjectKey("this_is_a_test_01_02_2025");
+
+        expect(dotted).not.toBe(underscored);
+    });
+
+    test("produces distinct keys for inputs differing only in hyphens vs underscores", () => {
+        const hyphenated = normalizeObjectKey("my-image-file");
+        const underscored = normalizeObjectKey("my_image_file");
+
+        expect(hyphenated).not.toBe(underscored);
+    });
+
+    test("preserves file extensions instead of collapsing the extension dot", () => {
+        // Regression: previously "foo.png" normalized to "foo_png", colliding
+        // with any object literally named "foo_png".
+        expect(normalizeObjectKey("foo.png")).toBe("foo.png");
+        expect(normalizeObjectKey("foo.png")).not.toBe(
+            normalizeObjectKey("foo_png")
+        );
     });
 });
 
